@@ -314,6 +314,13 @@ Sub Main
     Dim u As Double, yv As Double, j As Long
     Dim cosA As Double, sinA As Double
     Dim r2 As Double, sag As Double, cc As Double, arg As Double
+    ' WinWrap folds constant expressions when it compiles the script, so
+    ' "1# / MIRROR_ROC" with MIRROR_ROC = 0 throws Divide by zero even inside
+    ' an If that never runs. Copying the Const into a normal variable stops
+    ' that: the division then only happens at run time, behind the If check.
+    Dim roc As Double
+    roc = MIRROR_ROC
+
     cosA = Cos(FLOW_ANGLE * PI / 180#)
     sinA = Sin(FLOW_ANGLE * PI / 180#)
 
@@ -362,8 +369,8 @@ Sub Main
                         ' 5d. Sag of the optical surface at this radius (conic)
                         '     sag = c r^2 / (1 + sqrt(1 - (1+K) c^2 r^2)),  c = 1/ROC
                         sag = 0#
-                        If MIRROR_ROC <> 0# Then
-                            cc = 1# / MIRROR_ROC
+                        If roc <> 0# Then
+                            cc = 1# / roc      ' roc is a runtime copy of MIRROR_ROC (see STEP 5)
                             r2 = fromXYZ(0) ^ 2 + fromXYZ(1) ^ 2
                             arg = 1# - (1# + MIRROR_K) * cc * cc * r2
                             If arg < 0# Then arg = 0#      ' guard: beyond the conic's valid aperture
