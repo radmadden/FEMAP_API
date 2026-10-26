@@ -62,7 +62,8 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 METERS_TO_INCHES = 39.37007874
 
-GRID_SPACING_IN = 0.25     # dense cloud: in-plane point spacing (smaller = denser)
+GRID_SPACING_IN = 1.0      # dense cloud: in-plane point spacing (smaller = denser);
+                           # face is isothermal so coarse is fine -- ~16x fewer points than 0.25
 ADD_Z_EDGE_POINTS = True   # add z=0 surface and z=thickness back-face points
 WRITE_HEADER = True        # write the "x,y,z,T" header row; False if FEMAP wants none
 
@@ -433,11 +434,25 @@ def main():
         if not output_folder:
             return
 
+        # dense in-plane spacing (asked at run time). The face is ~isothermal, so a
+        # coarse grid is just as accurate and means far fewer points / much faster
+        # mapping in FEMAP. Point count scales as ~1/spacing^2.
+        dense_spacing = GRID_SPACING_IN
+        if out_mode in (1, 3):
+            dense_spacing = simpledialog.askfloat(
+                "Grid density",
+                "In-plane grid spacing in inches (larger = fewer points, faster).\n"
+                "The mirror face is ~isothermal, so coarse is fine.\n"
+                "0.25 = dense, 0.5 = medium, 1.0 = fast:",
+                initialvalue=GRID_SPACING_IN, minvalue=0.01)
+            if dense_spacing is None:
+                return
+
         # build (all validation happens inside) -- nothing written on failure
         jobs = []
         if out_mode in (1, 3):
             cloud, info = build_cloud(df_nodes, t_array, T_matrix, node_names,
-                                      target_component, target_time)
+                                      target_component, target_time, grid_spacing=dense_spacing)
             jobs.append(("MirrorCloud3D", cloud, info))
         if out_mode in (2, 3):
             cloud, info = build_skeleton(df_nodes, t_array, T_matrix, node_names,
