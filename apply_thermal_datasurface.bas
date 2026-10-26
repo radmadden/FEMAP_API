@@ -80,12 +80,18 @@ Sub Main
     Dim App As femap.model
     Set App = feFemap()
 
-    Dim ds As femap.DataSurf : Set ds = App.feDataSurf
-    Dim ls As femap.LoadSet  : Set ls = App.feLoadSet
-    Dim nt As femap.LoadNTemp: Set nt = App.feLoadNTemp
-    Dim nd As femap.Node     : Set nd = App.feNode
-    Dim es As femap.Set      : Set es = App.feSet
-    Dim cs As femap.CSys     : Set cs = App.feCSys
+    Dim ds As femap.DataSurf
+    Set ds = App.feDataSurf
+    Dim ls As femap.LoadSet
+    Set ls = App.feLoadSet
+    Dim nt As femap.LoadNTemp
+    Set nt = App.feLoadNTemp
+    Dim nd As femap.Node
+    Set nd = App.feNode
+    Dim es As femap.Set
+    Set es = App.feSet
+    Dim cs As femap.CSys
+    Set cs = App.feCSys
 
     Dim rc As Long
 
@@ -271,13 +277,20 @@ Sub Main
     ' STEP 7: Evaluate the Data Surface at each node (FEMAP's own IDW)
     '--------------------------------------------------------------------------
     ' Prepare the arrays feLoadNTemp.PutAllArray expects (one entry per node).
-    Dim NodeID() As Long      : ReDim NodeID(nNodes - 1)
-    Dim Temp() As Double      : ReDim Temp(nNodes - 1)
-    Dim Expanded() As Boolean : ReDim Expanded(nNodes - 1)
-    Dim Layer() As Long       : ReDim Layer(nNodes - 1)
-    Dim Color() As Long       : ReDim Color(nNodes - 1)
-    Dim LoadDef() As Long     : ReDim LoadDef(nNodes - 1)
-    Dim FuncID() As Long      : ReDim FuncID(nNodes - 1)
+    Dim NodeID() As Long
+    Dim Temp() As Double
+    Dim Expanded() As Boolean
+    Dim Layer() As Long
+    Dim Color() As Long
+    Dim LoadDef() As Long
+    Dim FuncID() As Long
+    ReDim NodeID(nNodes - 1)
+    ReDim Temp(nNodes - 1)
+    ReDim Expanded(nNodes - 1)
+    ReDim Layer(nNodes - 1)
+    ReDim Color(nNodes - 1)
+    ReDim LoadDef(nNodes - 1)
+    ReDim FuncID(nNodes - 1)
 
     Dim Coord(3) As Double     ' node location fed to GetData (size per guide example)
     Dim ans As Double          ' scalar result
@@ -324,9 +337,19 @@ Sub Main
 
 
     '--------------------------------------------------------------------------
-    ' STEP 8: Bulk-apply the nodal temperatures into the active load set
+    ' STEP 8: Bulk-apply the nodal temperatures into our load set
+    '   PutArray writes directly to the database (no Put needed afterward). Per
+    '   the API guide you must first set the object's setID (which load set) and
+    '   color. doValues=True -> use our Temp() values; doFunctions=False ->
+    '   constant temperatures (no time function), so FuncID() is ignored.
+    '   Arrays are trimmed to the number actually evaluated (nGot).
     '--------------------------------------------------------------------------
-    rc = nt.PutAllArray(nGot, Expanded, NodeID, Layer, Color, LoadDef, Temp, FuncID)
+    nt.setID = lsID
+    nt.color = LOAD_COLOR
+    ReDim Preserve NodeID(nGot - 1)
+    ReDim Preserve Temp(nGot - 1)
+    ReDim Preserve FuncID(nGot - 1)
+    rc = nt.PutArray(nGot, True, False, NodeID, Temp, FuncID)
     If rc <> FE_OK Then
         MsgBox "Failed to create nodal temperatures (rc=" & rc & ")."
         Exit Sub
@@ -338,7 +361,8 @@ Sub Main
     ' STEP 9: Report
     '--------------------------------------------------------------------------
     Dim tmin As Double, tmax As Double
-    tmin = Temp(0) : tmax = Temp(0)
+    tmin = Temp(0)
+    tmax = Temp(0)
     For i = 1 To nGot - 1
         If Temp(i) < tmin Then tmin = Temp(i)
         If Temp(i) > tmax Then tmax = Temp(i)
