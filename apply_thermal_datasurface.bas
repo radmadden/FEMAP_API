@@ -52,11 +52,43 @@
 ' HOW TO RUN
 '   FEMAP > File > Programming > API Programming (Ctrl+F11), paste, then Run.
 '
+' STATUS
+'   Verified working in FEMAP (2026-10-26). Notes from first run, now baked in:
+'     * Nodal temps are created with feLoadNTemp.PutArray -- you must set the
+'       object's setID (the load set) and color FIRST; the active-set flag alone
+'       is not enough. (The fuller PutAllArray needs the same setID and was
+'       dropped in favor of the simpler PutArray.)
+'     * The load set is also made active via Info_ActiveID(FT_LOAD_DIR) for
+'       convenience (so it shows as active in the UI).
+'     * ds.Evaluate(0,0,0,False) then ds.GetData(0, id, Coord, ans, vXYZ)
+'       returns the interpolated temperature in the scalar "ans".
+'     * Mirror nodes are chosen with es.Select(FT_NODE, ...).
+'     * WinWrap note: do NOT combine Dim with Set/ReDim on one line via ":".
+'
+' CURVED SURFACES (SAG_MODE)
+'   Mirror optical surfaces are not always flat. The flat cloud stores T vs depth
+'   below a flat vertex plane; a curved surface sits at z = sag(x,y). The chosen
+'   (interim) rule: shift each through-thickness column straight DOWN the optical
+'   axis by the local sag, so a node whose axial depth below the curved surface is
+'   d still gets the flat column's T(d). ONLY z is shifted -- x and y are kept, so
+'   nothing moves sideways. Depth is axial (along z), not along the surface normal;
+'   for steep ("fast") mirrors that is a small, flagged approximation.
+'     SAG_MODE = 0  flat     -> sag = 0 (exact original behavior)
+'     SAG_MODE = 1  conic    -> sag from ROC + conic constant K (sign of ROC sets
+'                               convex vs concave); sphere/parabola/ellipse/hyperbola
+'     SAG_MODE = 2  geometry -> sag read from a modeled optical Surface by projecting
+'                               each node onto it (any shape; asphere/measured/freeform)
+'   Sag is computed in the vertex-local frame (each node is transformed global->local
+'   so radius and depth are correct), z is shifted there, then transformed back to
+'   global for GetData. A fast-mirror warning prints when the rim surface tilt exceeds
+'   SLOPE_WARN_DEG, with the estimated axial-vs-normal depth error.
+'
 ' API CALLS USED (Femap API Guide 2025)
 '   feFemap, feDataSurf (csys, vector, InterpPercent, InterpMin,
 '     VarArbitrary3DCoord, PutDataSurf, GetDataSurf, Evaluate, GetData),
-'   feLoadSet (Put), feLoadNTemp (PutAllArray), feNode (Get, x/y/z),
+'   feLoadSet (Put), feLoadNTemp (setID, color, PutArray), feNode (Get, x/y/z),
 '   feSet (Select, First, Next), feCSys (Get, type),
+'   feSurface (Get, XYZToParam, ParamToXYZ), feCoordTransform,
 '   Info_NextID, Info_ActiveID, feAppLock/feAppUnlock, feViewRegenerate
 '==============================================================================
 
@@ -70,6 +102,21 @@ Const SCALE_FAC      As Double = 1.0    ' scales file coords on read (0.0393701 
 Const LOAD_COLOR     As Long   = 10     ' Femap palette index for the created loads
 Const DS_TITLE_PFX   As String = "ThermalCloud"
 Const LS_TITLE_PFX   As String = "ThermalMap"
+
+' ---- curved-surface (sag) settings ----
+Const SAG_MODE As Long       = 1      ' 0 = flat, 1 = conic (ROC/K), 2 = geometry (Surface ID)
+Const Z_SIGN   As Double     = -1.0   ' depth direction into the substrate (confirm on first run)
+Const MIRROR_ROC As Double   = 0.0    ' vertex radius of curvature; sign sets convex/concave; 0 = flat
+Const MIRROR_K   As Double   = 0.0    ' conic constant: 0 sphere, -1 parabola, <-1 hyperbola, >0 oblate
+Const SLOPE_WARN_DEG As Double = 7.0  ' warn if rim surface tilt exceeds this (fast mirror)
+
+' ---- module-level sag state (set in Main, read by SagFunc) ----
+Dim gApp As femap.model
+Dim gCSys As Long
+Dim gMode As Long
+Dim gROC As Double
+Dim gK As Double
+Dim gSurf As femap.Surface
 
 
 Sub Main
@@ -143,6 +190,45 @@ Sub Main
     tag = InputBox("Short tag for naming the surface and load set (e.g. M1_120s):", _
                    "Apply Thermal Data Surface", "map")
     If tag = "" Then tag = "map"
+
+    '--------------------------------------------------------------------------
+    ' STEP 2b: Curved-surface (sag) setup
+    '   SAG_MODE 0 = flat, 1 = conic (ROC/K), 2 = geometry (optical Surface).
+    '   The sag only shifts the lookup z (down the optical axis); x,y are kept.
+    '   Module-level gApp/gCSys/gMode/gROC/gK/gSurf feed the SagFunc helper.
+    '--------------------------------------------------------------------------
+    If SAG_MODE < 0 Or SAG_MODE > 2 Then
+        MsgBox "SAG_MODE must be 0 (flat), 1 (conic) or 2 (geometry)."
+        Exit Sub
+    End If
+    Set gApp = App
+    gCSys = surfCSys
+    gMode = SAG_MODE
+    gROC = MIRROR_ROC
+    gK = MIRROR_K
+
+    Dim surfID As Long
+    surfID = 0
+    Dim sstr As String
+    If SAG_MODE = 1 Then
+        sstr = InputBox("Conic ROC (vertex radius of curvature; sign sets convex/concave; 0 = flat):", _
+                        "Curved surface - conic", Format(MIRROR_ROC, "0.0####"))
+        If sstr = "" Or Not IsNumeric(sstr) Then Exit Sub
+        gROC = CDbl(sstr)
+        sstr = InputBox("Conic constant K (0 sphere, -1 parabola, <-1 hyperbola, >0 oblate):", _
+                        "Curved surface - conic", Format(MIRROR_K, "0.0####"))
+        If sstr = "" Or Not IsNumeric(sstr) Then Exit Sub
+        gK = CDbl(sstr)
+    ElseIf SAG_MODE = 2 Then
+        sstr = InputBox("Optical Surface ID to project each node onto:", "Curved surface - geometry", "1")
+        If sstr = "" Or Not IsNumeric(sstr) Then Exit Sub
+        surfID = CLng(sstr)
+        Set gSurf = App.feSurface
+        If gSurf.Get(surfID) <> FE_OK Then
+            MsgBox "Surface " & surfID & " does not exist in this model."
+            Exit Sub
+        End If
+    End If
 
 
     '--------------------------------------------------------------------------
@@ -296,6 +382,37 @@ Sub Main
     Dim ans As Double          ' scalar result
     Dim vXYZ As Variant        ' vector result (unused for a scalar surface)
 
+    ' Flat-cloud depth range, for the out-of-range diagnostic after the sag shift.
+    Dim czmin As Double
+    Dim czmax As Double
+    czmin = cz(0)
+    czmax = cz(0)
+    For i = 1 To nPts - 1
+        If cz(i) < czmin Then czmin = cz(i)
+        If cz(i) > czmax Then czmax = cz(i)
+    Next i
+
+    ' Per-node working values for the sag shift (all in the vertex-local frame).
+    Dim gxyz(2) As Double
+    Dim loc2(2) As Double
+    Dim locv As Variant
+    Dim gout As Variant
+    Dim lx As Double
+    Dim ly As Double
+    Dim lz As Double
+    Dim sagv As Double
+    Dim rr As Double
+    Dim maxR As Double
+    Dim sagMin As Double
+    Dim sagMax As Double
+    Dim flatMin As Double
+    Dim flatMax As Double
+    Dim nOut As Long
+    Dim seen As Boolean
+    maxR = 0#
+    nOut = 0
+    seen = False
+
     ' The surface must be evaluated once before GetData. For an Arbitrary 3D
     ' surface the geom/type/map/elemental arguments are not used -> 0,0,0,False.
     rc = ds.GetDataSurf(dsID)
@@ -308,20 +425,67 @@ Sub Main
     id = es.First()
     While id > 0
         If nd.Get(id) = FE_OK Then
-            Coord(0) = nd.x
-            Coord(1) = nd.y
-            Coord(2) = nd.z
-            ' GetData interpolates the surface at this (global) location; the
-            ' surface's csys handles the frame. ans = temperature at the node.
+            ' 1) node global -> vertex-local, so radius and depth are measured from the vertex
+            '    (flat mode skips the transform entirely -> exact original behavior)
+            If gCSys = 0 Or gMode = 0 Then
+                lx = nd.x
+                ly = nd.y
+                lz = nd.z
+            Else
+                gxyz(0) = nd.x
+                gxyz(1) = nd.y
+                gxyz(2) = nd.z
+                rc = App.feCoordTransform(0, gxyz, gCSys, locv)
+                lx = locv(0)
+                ly = locv(1)
+                lz = locv(2)
+            End If
+
+            ' 2) local sag; shift ONLY the depth (z) down the optical axis -- x,y unchanged
+            sagv = SagFunc(lx, ly)
+            loc2(0) = lx
+            loc2(1) = ly
+            loc2(2) = lz - Z_SIGN * sagv
+
+            ' 3) diagnostics: rim radius, sag range, shifted-depth range, out-of-range count
+            rr = Sqr(lx * lx + ly * ly)
+            If rr > maxR Then maxR = rr
+            If Not seen Then
+                sagMin = sagv
+                sagMax = sagv
+                flatMin = loc2(2)
+                flatMax = loc2(2)
+                seen = True
+            Else
+                If sagv < sagMin Then sagMin = sagv
+                If sagv > sagMax Then sagMax = sagv
+                If loc2(2) < flatMin Then flatMin = loc2(2)
+                If loc2(2) > flatMax Then flatMax = loc2(2)
+            End If
+            If loc2(2) < czmin - 0.000001 Or loc2(2) > czmax + 0.000001 Then nOut = nOut + 1
+
+            ' 4) shifted local point -> global for GetData (ds.csys handles its own frame)
+            If gCSys = 0 Or gMode = 0 Then
+                Coord(0) = loc2(0)
+                Coord(1) = loc2(1)
+                Coord(2) = loc2(2)
+            Else
+                rc = App.feCoordTransform(gCSys, loc2, 0, gout)
+                Coord(0) = gout(0)
+                Coord(1) = gout(1)
+                Coord(2) = gout(2)
+            End If
+
+            ' GetData interpolates the (flat) surface at the shifted location
             rc = ds.GetData(0, id, Coord, ans, vXYZ)
             If rc = FE_OK Then
-                NodeID(nGot)   = id
-                Temp(nGot)     = ans
+                NodeID(nGot) = id
+                Temp(nGot) = ans
                 Expanded(nGot) = False
-                Layer(nGot)    = 1
-                Color(nGot)    = LOAD_COLOR
-                LoadDef(nGot)  = 0
-                FuncID(nGot)   = 0
+                Layer(nGot) = 1
+                Color(nGot) = LOAD_COLOR
+                LoadDef(nGot) = 0
+                FuncID(nGot) = 0
                 nGot = nGot + 1
             End If
         End If
@@ -368,13 +532,118 @@ Sub Main
         If Temp(i) > tmax Then tmax = Temp(i)
     Next i
 
+    ' Sag-mode label for the report
+    Dim modeStr As String
+    If SAG_MODE = 0 Then modeStr = "flat (no sag)"
+    If SAG_MODE = 1 Then modeStr = "conic  ROC=" & Format(gROC, "0.0###") & "  K=" & Format(gK, "0.0###")
+    If SAG_MODE = 2 Then modeStr = "geometry  Surface " & surfID
+
+    ' Fast-mirror warning: rim surface tilt from a finite difference of the sag,
+    ' and the implied axial-vs-normal depth error (~ 1 - cos(theta)).
+    Dim PI As Double
+    PI = 4# * Atn(1#)
+    Dim thetaDeg As Double
+    Dim errPct As Double
+    Dim dR As Double
+    Dim sA As Double
+    Dim sB As Double
+    thetaDeg = 0#
+    errPct = 0#
+    If SAG_MODE <> 0 And maxR > 0# Then
+        dR = maxR * 0.01
+        If dR <= 0# Then dR = 0.001
+        sA = SagFunc(maxR, 0#)
+        sB = SagFunc(maxR - dR, 0#)
+        thetaDeg = Atn(Abs(sA - sB) / dR) * 180# / PI
+        errPct = (1# - Cos(thetaDeg * PI / 180#)) * 100#
+    End If
+
     Dim msg As String
     msg = "Cloud points read: " & nPts & "  (skipped " & nBad & " unreadable)" & vbCrLf & _
           "Data Surface ID:   " & dsID & "  (CSys " & surfCSys & _
           ", %=" & INTERP_PERCENT & ", min=" & INTERP_MIN & " nearest neighbor)" & vbCrLf & _
+          "Sag mode:          " & modeStr & vbCrLf & _
+          "Sag applied:       " & Format(sagMin, "0.0####") & " to " & Format(sagMax, "0.0####") & " in" & vbCrLf & _
+          "Shifted depth:     " & Format(flatMin, "0.0###") & " to " & Format(flatMax, "0.0###") & _
+          " in  (cloud " & Format(czmin, "0.0###") & " to " & Format(czmax, "0.0###") & ")" & vbCrLf & _
           "Load set ID:       " & lsID & "  (" & ls.title & ")" & vbCrLf & _
           "Nodes loaded:      " & nGot & " of " & nNodes & " selected" & vbCrLf & _
           "Temperature range: " & Format(tmin, "0.000") & " to " & Format(tmax, "0.000")
+    If nOut > 0 Then
+        msg = msg & vbCrLf & "** WARNING: " & nOut & " node(s) shifted outside the cloud depth range" & _
+              " (clamped to the end value). Check Z_SIGN and the vertex CSys. **"
+    End If
+    If SAG_MODE <> 0 And thetaDeg > SLOPE_WARN_DEG Then
+        msg = msg & vbCrLf & "** WARNING: rim surface tilt " & Format(thetaDeg, "0.0") & " deg (~" & _
+              Format(errPct, "0.00") & "% axial-depth error) -- fast mirror; the axial-depth rule is approximate here. **"
+    End If
     MsgBox msg
 
 End Sub
+
+
+'------------------------------------------------------------------------------
+' SagFunc - local surface sag at in-plane (lx, ly), in the vertex-local frame.
+'   Mode 0 (flat): 0. Mode 1 (conic): conic sag from gROC/gK. Mode 2 (geometry):
+'   project the local point onto the optical Surface (transforming to/from global,
+'   since surface geometry and XYZToParam work in global) and return its local z.
+'------------------------------------------------------------------------------
+Function SagFunc(lx As Double, ly As Double) As Double
+    Dim r2 As Double
+    Dim cc As Double
+    Dim arg As Double
+    Dim rc As Long
+    Dim u As Double
+    Dim v As Double
+    Dim qp(2) As Double
+    Dim qg As Variant
+    Dim qgd(2) As Double
+    Dim sxyz As Variant
+    Dim spd(2) As Double
+    Dim spl As Variant
+
+    SagFunc = 0#
+
+    If gMode = 1 Then
+        ' Conic sag: ROC = 0 -> flat (no divide). Guard the sqrt beyond the aperture.
+        If gROC <> 0# Then
+            cc = 1# / gROC
+            r2 = lx * lx + ly * ly
+            arg = 1# - (1# + gK) * cc * cc * r2
+            If arg < 0# Then arg = 0#
+            SagFunc = cc * r2 / (1# + Sqr(arg))
+        End If
+
+    ElseIf gMode = 2 Then
+        ' Build the local query point on the vertex plane, take it to global.
+        qp(0) = lx
+        qp(1) = ly
+        qp(2) = 0#
+        If gCSys = 0 Then
+            qgd(0) = qp(0)
+            qgd(1) = qp(1)
+            qgd(2) = qp(2)
+        Else
+            rc = gApp.feCoordTransform(gCSys, qp, 0, qg)
+            qgd(0) = qg(0)
+            qgd(1) = qg(1)
+            qgd(2) = qg(2)
+        End If
+        ' Project onto the surface, then read the surface point's local z = sag.
+        rc = gSurf.XYZToParam(qgd, u, v)
+        If rc = FE_OK Then
+            rc = gSurf.ParamToXYZ(u, v, sxyz)
+            If rc = FE_OK Then
+                spd(0) = sxyz(0)
+                spd(1) = sxyz(1)
+                spd(2) = sxyz(2)
+                If gCSys = 0 Then
+                    SagFunc = spd(2)
+                Else
+                    rc = gApp.feCoordTransform(0, spd, gCSys, spl)
+                    SagFunc = spl(2)
+                End If
+            End If
+        End If
+    End If
+End Function
