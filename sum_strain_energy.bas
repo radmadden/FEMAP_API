@@ -104,9 +104,13 @@ Sub Main
     Loop
 
     ' Property slots: only properties that own at least one selected element.
-    ' propOf maps CStr(elemID) -> bucket index.
-    Dim propOf As Collection
-    Set propOf = New Collection
+    ' propOf(elemID) = bucket index, 0 = none.  Only selected elements are
+    ' looked up, so the array only needs to reach the selection's highest ID.
+    ' (FEMAP's WinWrap has no Collection/Dictionary.)
+    Dim maxSel As Long
+    maxSel = eSet.Last()
+    Dim propOf() As Long
+    ReDim propOf(maxSel)
     Dim nProp As Long
     nProp = 0
     If doProps Then
@@ -124,10 +128,7 @@ Sub Main
             ps.Reset()
             Do While ps.Next()
                 If eSet.IsAdded(ps.CurrentID) Then
-                    ' Guard against a duplicate key (element already mapped).
-                    On Error Resume Next
-                    propOf.Add slot, CStr(ps.CurrentID)
-                    On Error GoTo 0
+                    propOf(ps.CurrentID) = slot
                     hit = True
                 End If
             Loop
@@ -224,7 +225,7 @@ Sub Main
                     If eSet.IsAdded(id) Then
                         AddTo bSE, bPC, bN, 0, v, p
                         If nProp > 0 Then
-                            b = PropSlot(propOf, id)
+                            b = propOf(id)
                             If b > 0 Then AddTo bSE, bPC, bN, b, v, p
                         End If
                     End If
@@ -260,18 +261,6 @@ Sub AddTo(bSE() As Double, bPC() As Double, bN() As Long, b As Long, _
     bPC(b) = bPC(b) + p
     bN(b) = bN(b) + 1
 End Sub
-
-
-'------------------------------------------------------------------------------
-' Property bucket for an element, or 0 if it has none (Collection.Item raises
-' on a missing key).
-'------------------------------------------------------------------------------
-Function PropSlot(propOf As Collection, id As Long) As Long
-    PropSlot = 0
-    On Error Resume Next
-    PropSlot = propOf.Item(CStr(id))
-    On Error GoTo 0
-End Function
 
 
 '------------------------------------------------------------------------------
