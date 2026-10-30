@@ -200,6 +200,11 @@ Implementation notes:
   match.
 - Excel constants (`xlEdgeTop`, `xlCenter`, …) are written as numbers with comments, since a
   late-bound COM object has no constants.
+- **First FEMAP run: no workbook appeared.** The likely cause is that an Excel started with
+  `CreateObject` closes itself once the macro releases it, unless `xl.UserControl = True`.
+  That's now set first thing, and Excel is brought to the front with `AppActivate` (best
+  effort). The macro also echoes the output choice and prints "Starting Excel..." so a silent
+  exit shows up in the Messages window. *Not yet confirmed in FEMAP.*
 - The model path comes from `feAppGetModel` + `feAppGetModelName`, inside an error trap.
   If the 64-bit model ID gives a type mismatch, the CSV default falls back to
   `C:\temp\strain_energy.csv`.

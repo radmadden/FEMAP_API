@@ -151,6 +151,9 @@ Sub Main
     If Dialog(od) = 0 Then Exit Sub
     Dim outChoice As Long
     outChoice = od.Choice
+    ' Echo the choice so a run that writes no file shows why.
+    App.feAppMessage(FCM_NORMAL, "Sum Strain Energy output choice = " & CStr(outChoice) & _
+                     " (0 Messages only, 1 Excel, 2 CSV)")
 
     ' Output sets: FT_OUT_CASE (28) is the "output set" entity type, so the
     ' same picker gives a multi-select list of them.
@@ -381,6 +384,7 @@ Sub Main
     gModelPath = ModelPath(App)
 
     If outChoice = OUT_XL Then
+        App.feAppMessage(FCM_NORMAL, "Starting Excel...")
         If Not WriteExcel(App) Then
             App.feAppMessage(FCM_WARNING, "Excel could not be started - writing a CSV instead.")
             outChoice = OUT_CSV
@@ -509,6 +513,11 @@ Function WriteExcel(App As femap.model) As Boolean
     WriteExcel = True
 
     On Error GoTo xlFail
+    ' UserControl = True hands this Excel to the user.  Without it, an Excel
+    ' started by CreateObject shuts itself down as soon as the macro ends and
+    ' the last reference (xl) is released - the workbook would flash up and
+    ' vanish.  Set it before anything else so even a partial workbook stays.
+    xl.UserControl = True
     xl.Visible = True
     xl.ScreenUpdating = False
     xl.DisplayAlerts = False            ' no "delete sheet?" confirmation
@@ -658,7 +667,13 @@ Function WriteExcel(App As femap.model) As Boolean
     wsS.Cells(1, 1).Select
     xl.ScreenUpdating = True
     xl.DisplayAlerts = True
-    App.feAppMessage(FCM_NORMAL, "Excel workbook written (unsaved): Summary + Detail sheets.")
+    ' Excel may open behind FEMAP; bring it to the front.  (Best effort - some
+    ' Windows focus rules block this, so ignore any error.)
+    On Error Resume Next
+    AppActivate xl.Caption
+    On Error GoTo 0
+    App.feAppMessage(FCM_HIGHLIGHT, "Excel workbook written (unsaved): Summary + Detail " & _
+                     "sheets. Check the taskbar if it isn't in front.")
     Exit Function
 
 xlFail:
