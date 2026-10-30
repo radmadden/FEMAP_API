@@ -61,9 +61,14 @@ Const NBUCK   As Long = 6
 '------------------------------------------------------------------------------
 ' Module-level state (shared with the routing helpers)
 '------------------------------------------------------------------------------
-Dim gNodeOwner As Collection    ' key CStr(nodeID) -> selected-group index
-Dim gElemOwner As Collection    ' key CStr(elemID) -> selected-group index
-Dim gMiscCards As Collection    ' distinct card names routed to misc
+' Ownership maps indexed by entity ID -> selected-group index, -1 = not selected.
+' Plain arrays because FEMAP's WinWrap has no Collection; grown on demand.
+Const OWN_NODE As Long = 0
+Const OWN_ELEM As Long = 1
+Dim gNodeOwner() As Long
+Dim gElemOwner() As Long
+Dim gMiscCards As String        ' distinct card names routed to misc, comma list
+Dim gMiscCount As Long
 
 Dim gOutDir As String
 
@@ -180,9 +185,12 @@ Sub Main
     '--------------------------------------------------------------------------
     ' STEP 4: ownership maps + file names
     '--------------------------------------------------------------------------
-    Set gNodeOwner = New Collection
-    Set gElemOwner = New Collection
-    Set gMiscCards = New Collection
+    ReDim gNodeOwner(0)
+    ReDim gElemOwner(0)
+    gNodeOwner(0) = -1
+    gElemOwner(0) = -1
+    gMiscCards = ""
+    gMiscCount = 0
 
     ReDim gGrpTitle(gGrpCount - 1)
     ReDim gGrpFnum(gGrpCount - 1)
@@ -215,7 +223,7 @@ Sub Main
         ns.AddGroup FT_NODE, selID(gi)
         id = ns.First()
         Do While id > 0
-            AddOwner gNodeOwner, id, gi
+            AddOwner OWN_NODE, id, gi
             id = ns.Next()
         Loop
 
@@ -224,7 +232,7 @@ Sub Main
         es.AddGroup FT_ELEM, selID(gi)
         id = es.First()
         Do While id > 0
-            AddOwner gElemOwner, id, gi
+            AddOwner OWN_ELEM, id, gi
             id = es.Next()
         Loop
     Next gi
@@ -392,12 +400,9 @@ Sub Main
         msg = msg & vbCrLf & "Filtered out (no selected node/elem): " & _
               gDropLoad & " load(s), " & gDropCon & " constraint(s)."
     End If
-    If gMiscCards.Count > 0 Then
-        msg = msg & vbCrLf & "Unrouted card types in misc.bdf: "
-        For i = 1 To gMiscCards.Count
-            msg = msg & gMiscCards.Item(i)
-            If i < gMiscCards.Count Then msg = msg & ", "
-        Next i
+    If gMiscCount > 0 Then
+        msg = msg & vbCrLf & "Unrouted card types in misc.bdf: " & _
+              Replace(gMiscCards, ",", ", ")
     End If
     MsgBox msg
 
@@ -442,7 +447,7 @@ Sub ProcessCard(buffer As String)
     ' with no selected owner means an element references a node from a group you
     ' did not pick; park it in misc and flag it rather than lose it silently.
     If card = "GRID" Then
-        gi = OwnerOf(gNodeOwner, id2)
+        gi = OwnerOf(OWN_NODE, id2)
         If gi >= 0 Then
             WriteToGroup gi, buffer
         Else
@@ -514,7 +519,7 @@ Sub ProcessCard(buffer As String)
     ' Anything left with a field-2 ID that we recorded as a selected element is an
     ' element of that group (CQUAD4, CHEXA, CBUSH, RBE2/RBE3, CONM2, ... - no need
     ' to enumerate element types, FEMAP already grouped them by ID).
-    gi = OwnerOf(gElemOwner, id2)
+    gi = OwnerOf(OWN_ELEM, id2)
     If gi >= 0 Then
         WriteToGroup gi, buffer
         Exit Sub
@@ -570,27 +575,49 @@ End Function
 
 
 '------------------------------------------------------------------------------
-' Ownership maps - a WinWrap Collection used as a hash map from entity ID (as a
-' string key) to the owning selected-group index. Collection has no "contains?"
-' test, so existence is probed by catching the error that .Item raises on a
-' missing key (OwnerOf returns -1 for "not a selected entity").
+' Ownership maps - arrays indexed by entity ID holding the owning selected-group
+' index, -1 = not a selected entity. kind = OWN_NODE or OWN_ELEM picks the array
+' (globals rather than array parameters, so ReDim Preserve acts on the real one).
 '------------------------------------------------------------------------------
-Sub AddOwner(c As Collection, id As Long, gi As Long)
-    ' .Add raises on a duplicate key; we swallow it so a node that somehow appears
-    ' in two selected groups keeps its FIRST owner (and so is written only once).
-    On Error Resume Next
-    c.Add gi, CStr(id)
-    On Error GoTo 0
+Sub AddOwner(kind As Long, id As Long, gi As Long)
+    If id <= 0 Then Exit Sub
+    Dim n As Long, k As Long
+    If kind = OWN_NODE Then
+        n = UBound(gNodeOwner)
+        If id > n Then
+            ' grow geometrically so ascending IDs don't ReDim on every add
+            ReDim Preserve gNodeOwner(MaxL(id, 2 * n))
+            For k = n + 1 To UBound(gNodeOwner)
+                gNodeOwner(k) = -1
+            Next k
+        End If
+        ' a node that somehow appears in two selected groups keeps its FIRST
+        ' owner (and so is written only once)
+        If gNodeOwner(id) < 0 Then gNodeOwner(id) = gi
+    Else
+        n = UBound(gElemOwner)
+        If id > n Then
+            ReDim Preserve gElemOwner(MaxL(id, 2 * n))
+            For k = n + 1 To UBound(gElemOwner)
+                gElemOwner(k) = -1
+            Next k
+        End If
+        If gElemOwner(id) < 0 Then gElemOwner(id) = gi
+    End If
 End Sub
 
-Function OwnerOf(c As Collection, id As Long) As Long
-    Dim v As Variant
-    On Error GoTo miss              ' .Item on an unknown key jumps here
-    v = c.Item(CStr(id))
-    OwnerOf = CLng(v)
-    Exit Function
-miss:
-    OwnerOf = -1                    ' key absent -> not a selected node/element
+Function OwnerOf(kind As Long, id As Long) As Long
+    OwnerOf = -1                    ' out of range -> not a selected node/element
+    If id <= 0 Then Exit Function
+    If kind = OWN_NODE Then
+        If id <= UBound(gNodeOwner) Then OwnerOf = gNodeOwner(id)
+    Else
+        If id <= UBound(gElemOwner) Then OwnerOf = gElemOwner(id)
+    End If
+End Function
+
+Function MaxL(a As Long, b As Long) As Long
+    If a > b Then MaxL = a Else MaxL = b
 End Function
 
 
@@ -620,8 +647,8 @@ Function CardTouchesAny(buffer As String) As Boolean
             If s <> "" And IsNumeric(s) Then
                 If InStr(s, ".") = 0 And InStr(UCase(s), "E") = 0 Then  ' integer = an ID
                     v = CLng(Val(s))
-                    If OwnerOf(gNodeOwner, v) >= 0 Then CardTouchesAny = True : Exit Function
-                    If OwnerOf(gElemOwner, v) >= 0 Then CardTouchesAny = True : Exit Function
+                    If OwnerOf(OWN_NODE, v) >= 0 Then CardTouchesAny = True : Exit Function
+                    If OwnerOf(OWN_ELEM, v) >= 0 Then CardTouchesAny = True : Exit Function
                 End If
             End If
         Next j
@@ -671,13 +698,13 @@ End Function
 
 '------------------------------------------------------------------------------
 ' Record a DISTINCT card name that landed in misc.bdf, so the summary can list
-' what wasn't recognized. Using the name as the key means a repeat raises (and is
-' ignored), leaving one entry per distinct card type.
+' what wasn't recognized. InList skips repeats, leaving one entry per card type.
 '------------------------------------------------------------------------------
 Sub RecordMisc(card As String)
-    On Error Resume Next
-    gMiscCards.Add card, card
-    On Error GoTo 0
+    If InList(card, gMiscCards) Then Exit Sub
+    If gMiscCount > 0 Then gMiscCards = gMiscCards & ","
+    gMiscCards = gMiscCards & card
+    gMiscCount = gMiscCount + 1
 End Sub
 
 

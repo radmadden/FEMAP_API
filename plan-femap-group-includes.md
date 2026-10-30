@@ -75,8 +75,10 @@ For each selected group gid (index gi):
     Set es = App.feSet : es.Clear : es.AddGroup(FT_ELEM, gid)
     id = es.First() : While id>0 : elemOwner.Add CStr(gi), CStr(id) : id = es.Next() : Wend
 ```
-- `nodeOwner` / `elemOwner`: WinWrap `Collection`s keyed by `CStr(entityID)` → owning
-  group index. Membership test = error-trapped `InColl(c, key)` helper.
+- `nodeOwner` / `elemOwner`: `Long` arrays indexed by entity ID → owning group index, with
+  -1 meaning not selected. They grow on demand with `ReDim Preserve`. FEMAP's WinWrap has no
+  `Collection`, which was the original design and failed with "Expecting a valid data
+  type". The membership test is `OwnerOf(kind, id) >= 0`.
 - `selNodes` = union of all selected node IDs (for load/constraint filtering).
 - Sanitize each `gp.title` → filename (`[^A-Za-z0-9_-]` → `_`; empty/dup → `group_<ID>`).
 

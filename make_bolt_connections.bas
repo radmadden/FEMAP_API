@@ -123,7 +123,11 @@ Dim gCy()   As Double
 Dim gCz()   As Double
 Dim gThk()  As Double        ' pierced-element property thickness (pval(0)), 0 if unknown
 
-Dim gPropThk As Collection   ' propID (as string) -> thickness, so feProp.Get runs once per prop
+' propID -> thickness cache, so feProp.Get runs once per prop. Parallel arrays with
+' a linear search (few properties); FEMAP's WinWrap has no Collection.
+Dim gThkPID() As Long
+Dim gThkVal() As Double
+Dim gThkN As Long
 
 
 Sub Main
@@ -244,7 +248,7 @@ Sub Main
     '--------------------------------------------------------------------------
     ' STEP 5: cache the candidate element geometry (one pass over both sides)
     '--------------------------------------------------------------------------
-    Set gPropThk = New Collection
+    gThkN = 0
 
     ' count first so we can size the arrays once
     Dim nA As Long, nB As Long, id As Long
@@ -695,21 +699,25 @@ End Function
 
 ' Plate thickness = property pval(0); cached per propID so feProp.Get runs once.
 Function PropThickness(propID As Long) As Double
-    Dim key As String
-    key = CStr(propID)
-    On Error GoTo lookup
-    PropThickness = CDbl(gPropThk.Item(key))
-    Exit Function
-lookup:
-    On Error GoTo 0
+    Dim i As Long
+    For i = 0 To gThkN - 1
+        If gThkPID(i) = propID Then
+            PropThickness = gThkVal(i)
+            Exit Function
+        End If
+    Next i
+
     Dim pr As femap.Prop
     Set pr = gApp.feProp
     Dim t As Double
     t = 0#
     If pr.Get(propID) = FE_OK Then t = pr.pval(0)
-    On Error Resume Next
-    gPropThk.Add t, key
-    On Error GoTo 0
+
+    ReDim Preserve gThkPID(gThkN)
+    ReDim Preserve gThkVal(gThkN)
+    gThkPID(gThkN) = propID
+    gThkVal(gThkN) = t
+    gThkN = gThkN + 1
     PropThickness = t
 End Function
 
