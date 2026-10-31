@@ -151,9 +151,6 @@ Sub Main
     If Dialog(od) = 0 Then Exit Sub
     Dim outChoice As Long
     outChoice = od.Choice
-    ' Echo the choice so a run that writes no file shows why.
-    App.feAppMessage(FCM_NORMAL, "Sum Strain Energy output choice = " & CStr(outChoice) & _
-                     " (0 Messages only, 1 Excel, 2 CSV)")
 
     ' Output sets: FT_OUT_CASE (28) is the "output set" entity type, so the
     ' same picker gives a multi-select list of them.
@@ -384,7 +381,6 @@ Sub Main
     gModelPath = ModelPath(App)
 
     If outChoice = OUT_XL Then
-        App.feAppMessage(FCM_NORMAL, "Starting Excel...")
         If Not WriteExcel(App) Then
             App.feAppMessage(FCM_WARNING, "Excel could not be started - writing a CSV instead.")
             outChoice = OUT_CSV
