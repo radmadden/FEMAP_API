@@ -1,7 +1,8 @@
 # Research: FEM validation checks (FEMCI Book), push-button Python tool
 
-**Status:** research done 2026-11-03, second round of answers needed (see "Open design
-questions, round 2" at the bottom). Plan comes after that.
+**Status:** research done; round-2 answers recorded 2026-11-03. Waiting on the sample
+Simcenter files and the Quick Reference Guide (due 2026-11-04) before writing
+`plan-fem-checks.md`.
 
 Renamed from `research-femap-fem-checks.md`: per Q0, this is now a Python tool, not a FEMAP
 macro. FEMAP's only job is exporting the model's .dat/.bdf.
@@ -22,8 +23,8 @@ The checks:
 4. Unit gravity in X, Y and Z, with an OLOAD vs SPCFORCE resultant comparison and a
    weight check (FEMCI).
 5. Unit temperature increase (thermal soak) on a kinematic mount (FEMCI).
-6. Model summary: node and element counts, element quality, and the extra Book checks
-   that can be automated (see below).
+6. Model summary: node and element counts, element quality, and an optional mass, CG
+   and inertia check against CAD or target values.
 
 ## Decisions locked from round 1 (user `>>` answers, 2026-11-03)
 
@@ -72,11 +73,11 @@ and whether Python can automate them without a pre/post-processor:
 
 | Book check | Automatable from the deck? |
 |---|---|
-| Mass reasonable (~1915) | **Yes.** GPWG weight and CG vs an optional user-entered expected mass and tolerance. This is the "weight check" you asked about |
-| Coincident nodes (~1903) | **Yes**, report only (the Book warns some are intentional): grid pairs within a tolerance, via a KD-tree (`find_closest_nodes.py`) |
-| Free edges (~1901) | **Yes for shells** (`free_edges.py:13`): count and list. Some are real boundaries, so report only |
-| Plate distortion (~1906) | **Yes:** element quality summary (`element_quality`, `delete_bad_elements.py:403`) |
-| CELAS between non-coincident grids (~1934) | **Yes**, simple geometry test. The Book calls it out as generating forces during rigid-body rotation, so it's also the usual cause of a GROUNDCHECK G-set FAIL |
+| Mass reasonable (~1915) | **Yes, in scope:** mass, CG and inertia vs optional CAD/target values (see "Mass-properties check") |
+| Coincident nodes (~1903) | Possible, **dropped by user (round 2)** |
+| Free edges (~1901) | Possible for shells, **dropped by user (round 2)** |
+| Plate distortion (~1906) | **Yes, in scope:** element quality summary (`element_quality`, `delete_bad_elements.py:403`) |
+| CELAS between non-coincident grids (~1934) | Possible, **dropped by user (round 2)** |
 | RBE3 used as structure, big RBE2s (~1932) | Count and list only; this needs engineering judgment |
 | Singularities / AUTOSPC (~1944) | **Yes**, from the .f06: the grid point singularity table, the AUTOSPC count, EPSILON and MAXRATIO messages, and a count of all FATAL/WARNING messages per run |
 | Units, WTMASS (~1920) | Partly. The tool asks for the unit system and flags a missing `PARAM,WTMASS` when the units call for one (in-lb-s) |
@@ -163,16 +164,21 @@ So any stress is a modeling defect, and the test can be relative and unit-free:
 9.80665 m/s². For in-lb-s the user must already have `PARAM,WTMASS,0.00259`; the tool
 checks for it.
 
-**Report: recommendation for your Q5.** Use **one self-contained HTML file**:
-- It opens in any browser, prints to PDF, and can be emailed as one attachment.
-- Layout: model summary at the top, then a **PASS/FAIL table, one row per check**, then a
-  section per check with the tables that justify the verdict.
-- Plots (bar chart of free-free frequencies, top-N quality histograms) are a small add-on;
-  I'd skip them in v1.
+**Report: PDF (round-2 decision).** HTML had no charting advantage; charts come from
+matplotlib either way. Its only edge was wide tables that don't paginate. PDF wins as an
+archival, attachable record for a review package.
+- Build it with **reportlab** (tables and page layout; one extra `pip install`). Charts come
+  from **matplotlib**, already a pyNastran dependency (`requires('pyNastran')`), embedded
+  as images.
+- Layout:
+  1. Page 1: model summary and the **PASS/FAIL table, one row per check**.
+  2. One section per check with the tables behind the verdict.
+  3. Appendix: long lists (top-N elements, quality tables).
+- Charts: free-free and constrained frequencies, effective-mass fractions, element-quality
+  histograms, thermal displacement error vs theory.
 - Also write `results.json` with every number, so later runs can be diffed against it.
-
-I'd avoid Word: it needs python-docx and adds formatting fights. A text file can't carry a
-readable PASS/FAIL table well.
+- Wide tables (e.g. 6-DOF unit-displacement results × 6 subcases) need landscape pages or
+  splitting. That's a layout detail for the plan.
 
 **GUI: recommendation for your Q7.** Use a **tkinter** window. It's in Python's standard
 library, so nothing extra to install, which matters on a locked-down work PC. It has:
@@ -180,7 +186,9 @@ library, so nothing extra to install, which matters on a locked-down work PC. It
 - a units dropdown;
 - the real SPC set ID;
 - the mount grid (auto or entered);
-- optional expected mass;
+- optional mass-properties targets: mass, CG (x, y, z) and inertia (Ixx, Iyy, Izz, Ixy,
+  Ixz, Iyz about the CG), each with a tolerance. Blank fields are skipped;
+- an AUTOSPC on/off checkbox for the free-free run;
 - a Run button and a log pane.
 
 It saves settings to `fem_checks.json` next to the deck, so a re-run is one click. The
@@ -195,7 +203,38 @@ the parsers are written blind against MSC samples from the Book.
 put a package in `fem_checks/` (GUI, deck writer, runner, parsers, report) with tests
 under `fem_checks/tests/`, and add a short Python section to CLAUDE.md when we implement.
 
-## Open design questions, round 2
+**Mass-properties check (added round 2).** The user enters CAD or target values for mass,
+CG and the inertia tensor, each optional, and the tool compares them to GPWG from run 01.
+Traps to handle:
+- **Product-of-inertia sign convention.** CAD tools usually report Ixy = +∫xy dm. Nastran's
+  GPWG prints the inertia *tensor*, whose off-diagonal terms are −∫xy dm [likely; confirm
+  on the sample .f06]. The GUI asks which convention the targets use, and the report
+  states it.
+- **Reference point and frame.** Targets are taken as inertia about the CG, in the basic
+  coordinate system. If the CAD frame differs from the FEM basic frame, the user has to
+  transform first. The tool doesn't attempt that.
+- **Weight vs mass units.** GPWG output may be in weight units, scaled by 1/WTMASS
+  [guessing; confirm on the sample .f06]. Comparisons must happen in one unit, and the
+  report labels which.
+- Tolerances: per-quantity % for mass and inertia; absolute length for CG, since a % of a
+  near-zero CG coordinate is meaningless.
+
+## Decisions locked from round 2 (user answers in chat, 2026-11-03)
+
+- **Q1/Q2:** sample Simcenter .f06/.op2/deck and the Quick Reference Guide coming
+  2026-11-04. The plan waits for them.
+- **Q3:** thermal 1e-3 relative displacement and stress limits: OK for now.
+- **Q4:** **no frequency floor** on constrained modes. Gimbals legitimately have one or two
+  near-zero "mechanism" modes, depending on whether the bearing rotations are locked. The
+  constrained-modes check is **report-only (INFO)**, with no PASS/FAIL.
+- **Q5:** AUTOSPC in the free-free run is a user option.
+- **Q6:** **PDF report**, not HTML (see Report above). GUI: tkinter, no objection raised.
+- **Q7:** user can `pip install pyNastran` on the work PC.
+- **Dropped:** coincident nodes, free edges and the CELAS-geometry check. GROUNDCHECK still
+  catches a bad spring as a G-set FAIL, just without naming it.
+- **Added:** optional mass, CG and inertia check against CAD/target values (above).
+
+## Open design questions, round 2 (answered above)
 
 1. **Sample files:** can you add one real Simcenter Nastran .f06 with GROUNDCHECK
    output, plus a small model deck exported from FEMAP (any model, even a plate)? Ideally
