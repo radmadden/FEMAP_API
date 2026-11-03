@@ -1,0 +1,375 @@
+1
+ 
+ 
+ 
+ 
+                                                             
+                    Unpublished Work. © 2023 Siemens        
+                         All Rights Reserved.                
+                                                             
+               This software and related documentation are   
+                    proprietary to Siemens Industry          
+                             Software Inc.                   
+                                                             
+              Siemens and the Siemens logo are registered    
+             trademarks of Siemens Trademark GmbH & Co. KG.  
+            Simcenter is a trademark, or registered trademark
+                of Siemens Industry Software Inc. or its     
+             subsidiaries in the United States and in other  
+             countries.  Simcenter NASTRAN is a registered   
+               trademark of Siemens Industry Software Inc.   
+            All other trademarks, registered trademarks or   
+               service marks belong to their respective      
+                        holders.                             
+                                                             
+           LIMITATIONS TO U.S. GOVERNMENT RIGHTS. UNPUBLISHED
+           - RIGHTS RESERVED UNDER THE COPYRIGHT LAWS OF THE 
+            UNITED STATES. This computer software and related
+               computer software documentation have been     
+            developed exclusively at private expense and are 
+           provided subject to the following rights:  If this
+               computer software and computer  software      
+            documentation qualify as "commercial items" (as  
+             that term is defined in FAR 2.101), their use,  
+            duplication or disclosure by the U.S. Government 
+           is subject to the protections and restrictions as 
+            set forth in the Siemens commercial license for  
+            software and/or documentation, as prescribed in  
+           FAR 12.212 and FAR 27.405(b)(2)(i) (for civilian  
+             agencies) and in DFARS 227.7202-1(a) and DFARS  
+           227.7202-3(a) (for the Department of Defense), or 
+           any successor or similar regulation, as applicable
+           or as amended from time to time.  If this computer
+           software and computer documentation do not qualify
+            as "commercial items", then they are "restricted 
+           computer software" and are provided with "restric-
+            tive rights", and their use, duplication or dis- 
+            closure by the U.S. Government is subject to the 
+            protections and restrictions as set forth in FAR 
+           27.404(b) and FAR 52-227-14 (for civilian agencies
+           ), and DFARS 227.7203-5(c) and DFARS 252.227-7014 
+           (for the Department of Defense), or any successor 
+           or similar regulation, as applicable or as amended
+           from time to time. Siemens Industry Software Inc. 
+           5800 Granite Parkway, Suite 600, Plano, TX 75024  
+ 
+
+                * * * * * * * * * * * * * * * * * * * *
+                * * * * * * * * * * * * * * * * * * * *
+                * *                                 * *
+                * *                                 * *
+                * *                                 * *
+                * *                                 * *
+                * *     Simcenter Nastran 2306      * *
+                * *                                 * *
+                * *       VERSION - 2306.0084       * *
+                * *                                 * *
+                * *          APR 24, 2023           * *
+                * *                                 * *
+                * *                                 * *
+                * *Intel64 Family 6 Model 141 Stepp * *
+                * *                                 * *
+                * *MODEL 11th Gen Intel(R) Core(TM) * *
+                * *                                 * *
+                * *           Windows 10            * *
+                * *                                 * *
+                * *       Compiled for X86-64       * *
+                * *                                 * *
+                * * * * * * * * * * * * * * * * * * * *
+                * * * * * * * * * * * * * * * * * * * *
+1 
+  
+                      Welcome to Simcenter Nastran
+                      ----------------------------
+  
+  
+ This "news" information can be turned off by setting "news=no" in the runtime
+ configuration (RC) file.  The "news" keyword can be set in the system RC file
+ for global, or multi-user control, and in a local file for local control.
+ Individual jobs can be controlled by setting news to yes or no on the command
+ line.
+1                                                                          NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE     1
+                                                                                                                                    
+0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     NASTRAN BUFFSIZE=32769 $(C:/PROGRAM FILES/SIEMENS/SIMCENTER3D_2306/NXNASTRAN/CON
+     NASTRAN BUFFPOOL=23291                                                          
+     NASTRAN DIAGA=128 DIAGB=0 $(C:/PROGRAM FILES/SIEMENS/SIMCENTER3D_2306/NXNASTRAN/
+     NASTRAN REAL=8481538048 $(MEMORY LIMIT FOR MPI AND OTHER SPECIALIZED MODULES)   
+     INIT MASTER(S)                                                                  
+     NASTRAN SYSTEM(442)=-1,SYSTEM(319)=1                                            
+1                                                                          NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE     2
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H O                                                             
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     ID BD,FEMAP                                                                             
+     SOL SESTATIC                                                                            
+     CEND                                                                                    
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE     3
+      BD IRAD V2                                                                                                                    
+0                                                                                                                                   
+0                                        C A S E    C O N T R O L    E C H O                                                        
+                 COMMAND                                                                                                            
+                 COUNT                                                                                                              
+                  1        TITLE = 1G UNIT LOAD CHECK                                                            
+                  2        SUBTITLE = BD IRAD V2                                                                 
+                  3        ECHO = NONE                                                                           
+                  4        WEIGHTCHECK(PRINT,SET=(G),                                                            
+                  5          CGI=NO,WEIGHT)=YES                                                                  
+                  6        DISPLACEMENT(PLOT) = ALL                                                              
+                  7        SPCFORCE(PLOT) = ALL                                                                  
+                  8        OLOAD(PLOT) = ALL                                                                     
+                  9        SPC = 3                                                                               
+                 10      SUBCASE 1                                                                               
+                 11        SUBTITLE = UNIT GRAV X                                                                
+                 12        LOAD = 1                                                                              
+                 13      SUBCASE 2                                                                               
+                 14        SUBTITLE = UNIT GRAV Y                                                                
+                 15        LOAD = 2                                                                              
+                 16      SUBCASE 3                                                                               
+                 17        SUBTITLE = UNIT GRAV Z                                                                
+                 18        LOAD = 3                                                                              
+                 19      $***********************************************************************                
+                 20      BEGIN BULK                                                                              
+0                             INPUT BULK DATA ENTRY COUNT =       50995
+0                       TOTAL COUNT=     50933
+
+
+                                        M O D E L   S U M M A R Y
+
+                                   NUMBER OF GRID     POINTS   =    24851
+ 
+ 
+                                   NUMBER OF CBEAM    ELEMENTS =       17
+                                   NUMBER OF CBUSH    ELEMENTS =        3
+                                   NUMBER OF CHEXA    ELEMENTS =     8856
+                                   NUMBER OF CONM2    ELEMENTS =        7
+                                   NUMBER OF CPENTA   ELEMENTS =      128
+                                   NUMBER OF CQUAD4   ELEMENTS =     7620
+                                   NUMBER OF CTRIA3   ELEMENTS =        8
+ 
+                                   NUMBER OF RBE2     ELEMENTS =       16
+                                   NUMBER OF RBE3     ELEMENTS =        2
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE     4
+      BD IRAD V2                                                                                                                    
+0                                                                                                                                   
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+ *** USER INFORMATION MESSAGE 4109 (OUTPBN2)
+     THE LABEL IS NX2306   FOR FORTRAN UNIT 12
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =        7 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =        8 RECORDS.)
+     (TOTAL DATA WRITTEN FOR TAPE LABEL =       17 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK PVT0     WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                27                 0                 0                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =       27 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       19 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =       53 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK CASECC   WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                 3                 0              1200                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =     1200 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       29 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =     3634 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK EQEXINS  WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101             24851                 0                 0                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =    49702 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       24 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =    99434 WORDS.)
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE     5
+      BD IRAD V2                                                                                                                    
+0                                                                                                                                   
+                                           O U T P U T   F R O M   W E I G H T   C H E C K
+0                                                     DEGREES OF FREEDOM SET = G       
+0                                                     REFERENCE POINT =        0
+                                                                M O
+                      *  1.900295E+00  0.000000E+00  2.151233E-18 -4.751707E-17  1.370654E-05  8.423426E+00 *
+                      *  0.000000E+00  1.900295E+00  0.000000E+00 -1.370654E-05  0.000000E+00  7.526419E-01 *
+                      *  2.151233E-18  0.000000E+00  1.900295E+00 -8.423426E+00 -7.526419E-01  4.751707E-17 *
+                      * -4.751707E-17 -1.370654E-05 -8.423426E+00  4.975391E+02 -2.048988E+00 -3.019669E-05 *
+                      *  1.370654E-05  0.000000E+00 -7.526419E-01 -2.048988E+00  3.894565E+02  2.717360E-04 *
+                      *  8.423426E+00  7.526419E-01  4.751707E-17 -3.019669E-05  2.717360E-04  4.250334E+02 *
+                                                                 S
+                                           *  1.000000E+00  0.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  1.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+                               DIRECTION
+                          MASS AXIS SYSTEM (S)     MASS              X-C.G.        Y-C.G.        Z-C.G.
+                                  X            1.900295E+00     -2.500511E-17 -4.432694E+00  7.212851E-06
+                                  Y            1.900295E+00      3.960659E-01  0.000000E+00  7.212851E-06
+                                  Z            1.900295E+00      3.960659E-01 -4.432694E+00  2.500511E-17
+                                                                I(S)
+                                           *  4.602007E+02  5.385219E+00  2.476800E-05 *
+                                           *  5.385219E+00  3.891584E+02 -2.109791E-04 *
+                                           *  2.476800E-05 -2.109791E-04  3.873969E+02 *
+                                                                I(Q)
+                                           *  4.606066E+02                             *
+                                           *                3.887526E+02               *
+                                           *                              3.873969E+02 *
+                                                                 Q
+                                           *  9.971715E-01  7.515926E-02  0.000000E+00 *
+                                           * -7.515926E-02  9.971715E-01  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE     6
+      BD IRAD V2                                                                                                                    
+0                                                                                                                                   
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK OGPWG    WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                 0                 0                 0                 0                 0                 1
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =      146 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       24 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =      254 WORDS.)
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE     7
+      BD IRAD V2                                                                                                                    
+0                                                                                                                                   
+0 RESULTANTS ABOUT ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM IN SUPERELEMENT BASIC SYSTEM COORDINATES.
+
+0                                                  OLOAD    RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0        1     FX    7.337038E+02     ----          ----          ----       5.292096E-03  3.252285E+03                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       8.305909E-16 -1.834634E-14  8.241945E-20     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  7.337038E+02  0.000000E+00  8.305909E-16 -1.834634E-14  5.292096E-03  3.252285E+03                             
+0        2     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       7.337038E+02     ----      -5.292096E-03     ----       2.905950E+02                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  7.337038E+02  0.000000E+00 -5.292096E-03  0.000000E+00  2.905950E+02                             
+0        3     FX    8.305909E-16     ----          ----          ----       6.547418E-20  1.834634E-14                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       7.337038E+02 -3.252285E+03 -2.905950E+02     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  8.305909E-16  0.000000E+00  7.337038E+02 -3.252285E+03 -2.905950E+02  1.834634E-14                             
+ ^^^ USER INFORMATION MESSAGE (XMCE1)    
+ ^^^ USING ALTERNATE MULTIPOINT CONSTRAINT ELIMINATION   
+ *** USER INFORMATION MESSAGE - SINGULARITIES FOUND USING EIGENVALUE METHOD
+ ***   51879 SINGULARITIES FOUND     51879 SINGULARITIES ELIMINATED
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE     8
+      BD IRAD V2                                                                                                                    
+0                                                                                                            SUBCASE 1              
+ *** SYSTEM INFORMATION MESSAGE 6916 (DFMSYN)
+     DECOMP ORDERING METHOD CHOSEN: DEFAULT, ORDERING METHOD USED: BEND
+ *** USER INFORMATION MESSAGE 5293 (SSG3A)
+    FOR DATA BLOCK KLL     
+    LOAD SEQ. NO.             EPSILON              EXTERNAL WORK      EPSILONS LARGER THAN 0.001 ARE FLAGGED WITH ASTERISKS
+    User information:
+    One line of output is printed for each static loading condition.
+    Small values of EPSILON are due to accumulated round-off error. Large
+    values of EPSILON indicate possible singularities in the stiffness
+    matrix.  See Section 9.5.1.
+                1         -3.9027150E-15          6.9165840E+08
+                2          1.4930238E-15          1.1060381E+09
+                3          3.4407538E-15          7.1388612E+08
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE     9
+      BD IRAD V2                                                                                                                    
+0                                                                                                                                   
+0 RESULTANTS ABOUT ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM IN SUPERELEMENT BASIC SYSTEM COORDINATES.
+
+0                                                  SPCFORCE RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0        1     FX   -7.337038E+02     ----          ----          ----       0.000000E+00 -1.539898E+04                             
+               FY       ----      -3.938402E-08     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----      -3.165164E-08  6.643046E-07  0.000000E+00     ----                                  
+               MX       ----          ----          ----       8.644531E-07     ----          ----                                  
+               MY       ----          ----          ----          ----      -5.292085E-03     ----                                  
+               MZ       ----          ----          ----          ----          ----       1.214669E+04                             
+             TOTALS -7.337038E+02 -3.938402E-08 -3.165164E-08  1.528758E-06 -5.292085E-03 -3.252285E+03                             
+0        2     FX   -4.296987E-08     ----          ----          ----       0.000000E+00 -9.018517E-07                             
+               FY       ----      -7.337038E+02     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       5.970365E-08 -1.253060E-06  0.000000E+00     ----                                  
+               MX       ----          ----          ----       5.293742E-03     ----          ----                                  
+               MY       ----          ----          ----          ----       9.097046E-08     ----                                  
+               MZ       ----          ----          ----          ----          ----      -2.905950E+02                             
+             TOTALS -4.296987E-08 -7.337038E+02  5.970365E-08  5.292489E-03  9.097046E-08 -2.905950E+02                             
+0        3     FX   -1.650682E-08     ----          ----          ----       0.000000E+00 -3.464451E-07                             
+               FY       ----       6.420995E-08     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----      -7.337038E+02  1.539898E+04  0.000000E+00     ----                                  
+               MX       ----          ----          ----      -1.214669E+04     ----          ----                                  
+               MY       ----          ----          ----          ----       2.905950E+02     ----                                  
+               MZ       ----          ----          ----          ----          ----      -3.517928E-07                             
+             TOTALS -1.650682E-08  6.420995E-08 -7.337038E+02  3.252285E+03  2.905950E+02 -6.982379E-07                             
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK OQG1     WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                 9              6600                 0                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =    65538 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       62 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =   596913 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK OUGV1    WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                 9              6600                 0                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =    65538 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       62 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =   596913 WORDS.)
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE    10
+      BD IRAD V2                                                                                                                    
+0                                                                                                                                   
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE    11
+      BD IRAD V2                                                                                                                    
+0                                                                                                                                   
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK OPG1     WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                 9              6600                 0                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =    65538 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       62 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =   596913 WORDS.)
+ *** USER INFORMATION MESSAGE 4110 (OUTPBN2)
+                                 END-OF-DATA SIMULATION ON FORTRAN UNIT 12
+                                 (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =      1 WORDS.)
+                                       (NUMBER OF FORTRAN RECORDS WRITTEN =      1 RECORDS.)
+                                       (TOTAL DATA WRITTEN FOR EOF MARKER =      1 WORDS.)
+1    1G UNIT LOAD CHECK                                                    NOVEMBER   3, 2026  SIMCENTER NASTRAN  4/24/23   PAGE    12
+      BD IRAD V2                                                                                                                    
+0                                                                                                                                   
+ * * * *  D B D I C T   P R I N T  * * * *      SUBDMAP = PRTSUM  ,  DMAP STATEMENT NO.     28
+
+
+
+0                                   * * * *  A N A L Y S I S  S U M M A R Y  T A B L E  * * * *
+0 SEID  PEID PROJ VERS APRCH      SEMG SEMR SEKR SELG SELR MODES DYNRED SOLLIN PVALID SOLNL LOOPID DESIGN CYCLE SENSITIVITY
+ --------------------------------------------------------------------------------------------------------------------------
+     0     0    1    1 '        '    T    T    T    T    T     F      F      T      0     F     -1            0           F
+0SEID = SUPERELEMENT ID.
+ PEID = PRIMARY SUPERELEMENT ID OF IMAGE SUPERELEMENT.
+ PROJ = PROJECT ID NUMBER.
+ VERS = VERSION ID.
+ APRCH = BLANK FOR STRUCTURAL ANALYSIS.  HEAT FOR HEAT TRANSFER ANALYSIS.
+ SEMG = STIFFNESS AND MASS MATRIX GENERATION STEP.
+ SEMR = MASS MATRIX REDUCTION STEP (INCLUDES EIGENVALUE SOLUTION FOR MODES).
+ SEKR = STIFFNESS MATRIX REDUCTION STEP.
+ SELG = LOAD MATRIX GENERATION STEP.
+ SELR = LOAD MATRIX REDUCTION STEP. 
+ MODES = T (TRUE) IF NORMAL MODES OR BUCKLING MODES CALCULATED.
+ DYNRED = T (TRUE) MEANS GENERALIZED DYNAMIC AND/OR COMPONENT MODE REDUCTION PERFORMED.
+ SOLLIN = T (TRUE) IF LINEAR SOLUTION EXISTS IN DATABASE.
+ PVALID = P-DISTRIBUTION ID OF P-VALUE FOR P-ELEMENTS
+ LOOPID = THE LAST LOOPID VALUE USED IN THE NONLINEAR ANALYSIS.  USEFUL FOR RESTARTS.
+ SOLNL = T (TRUE) IF NONLINEAR SOLUTION EXISTS IN DATABASE.
+ DESIGN CYCLE = THE LAST DESIGN CYCLE (ONLY VALID IN OPTIMIZATION).
+ SENSITIVITY = SENSITIVITY MATRIX GENERATION FLAG.
+1                                        * * * END OF JOB * * *
+ 
+ 

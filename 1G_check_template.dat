@@ -1,0 +1,36 @@
+SOL SESTATIC
+CEND
+  ECHO = NONE
+  NSM = 2
+  WEIGHTCHECK(PRINT,SET=(G),
+    CGI=NO,WEIGHT)=YES
+  DISPLACEMENT(PLOT) = ALL
+  SPCFORCE(PLOT) = ALL
+  OLOAD(PLOT) = ALL
+  SPC = 3
+SUBCASE 1
+  SUBTITLE = UNIT GRAV X
+  LOAD = 1
+SUBCASE 2
+  SUBTITLE = UNIT GRAV Y
+  LOAD = 2
+SUBCASE 3
+  SUBTITLE = UNIT GRAV Z
+  LOAD = 3
+$***********************************************************************
+BEGIN BULK
+PARAM,PRGPST,YES
+PARAM,POST,-1
+PARAM,OGEOM,NO
+PARAM,AUTOSPC,YES
+PARAM,K6ROT,100.
+PARAM,GRDPNT,0
+$***********************************************************************
+$ Femap Load Set 1 : NASTRAN GRAV 1
+GRAV           1       0      1.   386.1      0.      0.
+$ Femap Load Set 2 : NASTRAN GRAV 2
+GRAV           2       0      1.      0.   386.1      0.
+$ Femap Load Set 3 : NASTRAN GRAV 3 
+GRAV           3       0      1.      0.      0.   386.1
+$ Femap Constraint Set 3 : unit gravity check spc
+SPC1           3  123456  199999

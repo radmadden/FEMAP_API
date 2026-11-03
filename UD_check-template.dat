@@ -1,0 +1,48 @@
+SOL SESTATIC
+CEND
+  DISPLACEMENT(PLOT) = ALL
+  SPCFORCE(PLOT) = ALL
+  OLOAD(PLOT) = ALL
+  FORCE(PLOT,CORNER) = ALL
+  SPC = 1
+SUBCASE 1
+  SUBTITLE = SPCD - UD check X
+  LOAD = 1
+SUBCASE 2
+  SUBTITLE = SPCD - UD check Y
+  LOAD = 2
+SUBCASE 3
+  SUBTITLE = SPCD - UD check Z
+  LOAD = 3
+SUBCASE 4
+  SUBTITLE = SPCD - UD check MX
+  LOAD = 4
+SUBCASE 5
+  SUBTITLE = SPCD - UD check MY
+  LOAD = 5
+SUBCASE 6
+  SUBTITLE = SPCD - UD check MZ
+  LOAD = 6
+$***********************************************************************
+BEGIN BULK
+PARAM,PRGPST,NO
+PARAM,POST,-1
+PARAM,OGEOM,NO
+PARAM,AUTOSPC,YES
+PARAM,K6ROT,100.
+PARAM,GRDPNT,0
+
+$ Femap Load Set 1 : SPCD - UD check X
+SPCD           1  199999       1      1.
+$ Femap Load Set 2 : SPCD - UD check Y
+SPCD           2  199999       2      1.
+$ Femap Load Set 3 : SPCD - UD check Z
+SPCD           3  199999       3      1.
+$ Femap Load Set 4 : SPCD - UD check MX
+SPCD           4  199999       4      1.
+$ Femap Load Set 5 : SPCD - UD check MY
+SPCD           5  199999       5      1.
+$ Femap Load Set 6 : SPCD - UD check MZ
+SPCD           6  199999       6      1.
+$ Femap Constraint Set 2 : yoke unit enforced displacement spc
+SPC1           2  123456  199999
