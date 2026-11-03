@@ -16,6 +16,7 @@ One macro that sets up, runs and reports the standard FEM model checks:
 5. 1 K uniform thermal soak — free expansion, check for spurious stress (rigid elements,
    mismatched CTEs, over-constraint).
 6. One output report covering all runs.
+>> should add a constrined modes run as well
 
 "Set up and go," though it may need more than one analysis run.
 
@@ -27,11 +28,17 @@ ground check lives inside the free-free check, and OLOAD/SPCFORCE inside the gra
 The first three are for every statics/dynamics model; the thermal check is only for
 models used in thermal distortion analysis (femci ~1891).
 
+>> any other good checks we can do that the book recommends? weight check? etc?
+
 | Check | Constraint (per Book) | Pass criteria (per Book) |
 |---|---|---|
 | Unit enforced disp/rotation, SOL 101, 6 subcases (femci ~1953) | `SPC1 123456` on **one grid**, and `SPCD` 1.0 on that same grid in each DOF. That grid has no other SPCs and should be near the CG (~1966) | Translation subcases: 1.0 in the input DOF, 0.0 in the other 5. Rotation subcases: 1.0 rad about the input axis, other two rotations 0 (translations nonzero, rigid-body). Element forces and grid-point force balance ≈ 0, max **0.1 lb / 1.0 in-lb** (~1965) |
+
+
 | Free-free modes + GROUNDCHECK, SOL 103 (femci ~2082) | Remove all external SPCs. The `SPC=100` note is only for normal (drilling) plate rotations, not a base mount | ≥ 6 rigid-body modes at **≤ 1.0E-04 Hz** (~2095). `GROUNDCHECK(SET=ALL)=YES` prints G/N/F/A-set strain energy with PASS/FAIL against a limit (default: largest K term / 1e10). A G-set error propagates to later sets; `PARAM,AUTOSPC,YES` can falsely fail the A-set (~2127) |
 | Unit gravity X/Y/Z, SOL 101, 3 subcases (femci ~2231) | **Real mount** ("structure held at base") | SPC forces only at mount points. Their sum equals total weight in the load direction, ~0 in the others. No large displacements. `PARAM,GRDPNT,0` for the weight summary (~2270) |
+>> the best comparison for this pass criteria is checking the oload and spc force resultant tables 
+
 | Unit temperature increase, SOL 101 (femci ~2276) | **Kinematic mount**: "one GRID point constrained in all 6 DOFs" (~2289, ~2297) | Displacements match theory, α·L·ΔT. Grid-point force balance is zero everywhere, and SPC forces appear only at the mount. Setup: `TEMPD` = Tref + 1 (~2315). **All MAT cards set to the same CTE and same Tref** (~2319). RBE2s not joined by coincident nodes should not be used (~2318) |
 
 Implications:
@@ -47,14 +54,16 @@ Implications:
   `GROUNDCHECK(GRID=...)` reference: one near the CG (from GPWG).
 - The Book's units are in-lb (`GRAV 386.4` with `PARAM,WTMASS,0.00259`, ~2272). The tool
   must pick g and the force/moment thresholds to match the model's units.
+  >>maybe it asks for units so that it can react to in-lb vs. slinch vs. SI
 - The Book doesn't mention OLOAD explicitly. Comparing the OLOAD resultant against the
   SPCFORCE resultant and the GPWG weight is a stricter version of its "sum = total
   weight" check, so keep all three.
 - Its decks reference SOL 24 / MSC; use SOL 101 / 103 for both MSC and Simcenter.
+>> this should only be for simcenter nastran
 - Extra checks the Book lists for pre/post-processing (free edges, coincident
   nodes/elements, bar orientation, plate distortion/normals, mass) start at femci ~1897.
   They're out of scope for now (see Q9).
-
+>> most of those might be hard for python without a pre/post processor but maybe an element quality summary would be good.
 ## Key API findings (confirmed in api.pdf)
 
 _TBD — research pass. Things to find:_
@@ -101,7 +110,8 @@ _TBD — research pass. Things to find:_
    base .bdf; Python builds the check decks, runs Nastran, parses OP2/.f06 and writes the
    report?
    >> (2026-11-03, chat) user leaning Python; asked for a recommendation. Recommended:
-   Python end to end, FEMAP only exports the base deck. Awaiting confirmation.
+   Python end to end, FEMAP only exports the base deck. Awaiting confirmation. 
+   >>ok lets roll with that 
 1. "Unit grab check" — is this the 1g gravity check (X, Y, Z separately)? Any combined or
    +/- direction cases needed?
    >> yes, gravity check. (+/- and combined cases still open.)
@@ -112,24 +122,34 @@ _TBD — research pass. Things to find:_
    inertia relief (`PARAM,INREL,-2`). In practice "unconstrained" means a statically
    determinate mount whose SPC forces come out ~0. That's mechanically identical to free
    expansion, and the ~0 reactions are themselves part of the check.
+   >> use the same node as in the unit displacement set up
 2. Pass/fail criteria: what thresholds for rigid-body mode frequency (e.g. < 1e-3 Hz?),
-   ground-check strain energy, OLOAD vs SPCFORCE % difference, thermal soak max stress?
+   ground-check strain energy, OLOAD vs SPCFORCE % difference, thermal soak max stress? 
+   >>ground checks just need to check for pass on all the different sets, oload vs spc diff is usualy dead nuts so it can be small 1E-4?, the thermal soak i don't know maybe just do some research online or that has to be a manual check in the post processor
    Or is the report data-only with no pass/fail?
    Book defaults: RBM ≤ 1e-4 Hz; GROUNDCHECK's own PASS/FAIL; unit-enforced forces
    ≤ 0.1 lb / 1.0 in-lb; gravity reactions = GPWG weight; thermal displacements = α·L·ΔT.
    The Book gives no % tolerance for the gravity or thermal checks, so those still need one.
 3. Kinematic mount for unit displacement and thermal soak: user picks one node (123456),
    or a 3-2-1 set, or the macro picks the node nearest the CG?
+   >> i like the options 
    Book: one grid, 123456, near the CG. Open: user-picked, or auto-picked as the grid
    nearest the GPWG CG?
+   >> yes 
 4. Gravity check: run against the model's real constraints, or the kinematic mount?
    Book: real mount. The tool needs to know which SPC set is the real one.
+   >> ask for the spc set number thats the real one
 5. Report format: text file, CSV, FEMAP message window, or something richer (HTML /
-   Word)? Should it include plots/screenshots?
+   Word)? Should it include plots/screenshots? 
+   >>whats your suggestion for waht could be cleanest. I definitely want the pass/fail for each validity check along with the data that shows that
 6. Keep the generated `CHK_*` loads/constraints/analysis sets after running, or clean up?
+>> keep and make a folder
 7. Should the macro run Nastran itself and wait, or just build the analysis sets and let
    the user run them, then a second pass parses results?
+   >> it would be great if the user points to thier local nastran so it can just do the runs automatically. I want this to be a push button as possible. one stop shop and move one because this can be very time consuming. Perhaps the user can give a general .dat or .bf of the model as a staring point for the tool that way theres no need for a femap interface. What about a simple gui?  
 8. Any Nastran flavor constraints (MSC vs Simcenter/NX)? GROUNDCHECK and some PARAMs
    differ slightly.
+   >> simcenter/ NX
 9. Anything else from the FEMCI Book or your own checklist that belongs here (mass/CG vs expected,
-   element quality, free edges, coincident nodes, `PARAM,AUTOSPC` / `MAXRATIO` review)?
+   element quality, free edges, coincident nodes, `PARAM,AUTOSPC` / `MAXRATIO` review)? 
+   >> i think element quality report, also node and element count
