@@ -1,7 +1,6 @@
 # Research: FEM validation checks (FEMCI Book), push-button Python tool
 
-**Status:** research done; round-2 answers recorded 2026-11-03. Waiting on the sample
-Simcenter files and the Quick Reference Guide (due 2026-11-04) before writing
+**Status:** research complete 2026-11-04 (samples and QRG reviewed). Plan:
 `plan-fem-checks.md`.
 
 Renamed from `research-femap-fem-checks.md`: per Q0, this is now a Python tool, not a FEMAP
@@ -115,6 +114,77 @@ manuals, so these are [likely] but unconfirmed:
 
 The Book's samples are MSC output (~2148). Before trusting the parser we need one real
 Simcenter .f06 (see round-2 Q1).
+
+## Findings from the Simcenter samples and QRG (2026-11-04)
+
+Files supplied:
+- `QRG.pdf` (Simcenter Nastran QRG, 2025);
+- `freefree_check-0000.f06`;
+- `ud_check-0000.f06/.op2`;
+- `1g_unit_load_check-0000.f06/.op2`;
+- `UD_check-template.dat`, `1G_check_template.dat`.
+
+Line refs are into `pdftotext -layout QRG.pdf qrg.txt` (`qrg ~line`). The model in the
+samples has 24,851 grids, CHEXA/CQUAD4/CBEAM/CBUSH/RBE2/RBE3/CONM2 elements, mass
+1.900295 (in-lbf-s), and a mount at grid 199999.
+
+**QRG confirmations** (this clears the "Not verified yet" list):
+- `GROUNDCHECK(PRINT,SET=(G,N,N+AUTOSPC,F,A),GRID=gid,THRESH=e,DATAREC=YES)=YES`
+  (qrg ~18934). Must be above the subcase level. Default limit = largest K term / 1e10.
+  `SET=N+AUTOSPC` zeroes the AUTOSPC'd rows (qrg ~18975).
+- `WEIGHTCHECK(PRINT,SET=(G,N,N+AUTOSPC,F,A),GRID=gid,CGI=YES,MASS)=YES` (qrg ~31138).
+  **The WEIGHT/MASS option picks the units (default WEIGHT)**, which settles the
+  weight-vs-mass question: ask for MASS. In SOL 101 only SET=G is available (~31195).
+  Reduced sets print "% change with respect to G-set rigid body mass", which makes a free
+  extra check for mass lost by MPCs/RBEs.
+- `MEFFMASS` (qrg ~22311), `GPFORCE` (~18256), `OLOAD` (~24073).
+- `SPCD` (qrg ~119845): selected by `LOAD=` in statics. The DOF **must also be on an SPC/SPC1
+  selected by the SPC command** (remark 3).
+- `TEMPD` (qrg ~123383), selected by `TEMP(LOAD)` / `TEMP(INIT)`.
+- **RBE2 has an `ALPHA` field** (qrg ~112917), but it is only used with case control
+  `RIGID=LAGRAN` (remark 9, ~112944). Thermal strain = α·(AVGTEMP(LOAD) − AVGTEMP(INIT)),
+  so `TEMP(INIT)` matters for rigid elements.
+- `PARAM,AUTOSPC` default YES in SOLs 101/103 (qrg ~35652). `GRDPNT` default −1
+  (~37634). `WTMASS` default 1.0 (~42411).
+
+**What the sample .f06s show:**
+- **Rigid-body mode frequencies are 1.0e-4 to 4.3e-4 Hz; the 7th mode is 133 Hz.** On
+  FEMCI's absolute ≤ 1e-4 Hz criterion, **this model fails 5 of its 6 rigid-body modes**,
+  even though GROUNDCHECK passes every set with margins of 1e4-1e7. The absolute limit
+  doesn't scale with model size or units. The ratio f6/f7 = 3.2e-6 is the meaningful
+  number. See the plan's decisions to confirm.
+- GROUNDCHECK table format matches the Book except that the module is `GPWG1S` and there's
+  an extra `N+AUTOSPC` set. Parse "MATRIX K.. (X-SET)" + 6 rows of
+  `DIRECTION / STRAIN ENERGY / PASS|FAIL`, plus the "LIMIT OF" value.
+- OLOAD RESULTANT / SPCFORCE RESULTANT: a fixed table per subcase. Each block has FX, FY,
+  FZ, MX, MY, MZ rows and a **TOTALS** row (T1..R3), about the basic origin. "----" means
+  not applicable.
+- **Normalization matters for OLOAD vs SPCFORCE.** 1g X: T1 is 733.7038 vs −733.7038, an
+  exact match. The off-axis components are noise: SPC 1e-8 against OLOAD 0, or R2 5.292096e-3
+  vs −5.292085e-3. A per-component % test would fail on the noise. The test has to be
+  |OLOAD + SPCF| / |OLOAD| on the force vector, and on the moment vector normalized by
+  |M_OLOAD| + |F_OLOAD|·L (L = model size).
+- OLOAD T1 = 733.7038 = 1.900295 × 386.1: the mass and g check closes.
+- UD SPCFORCE resultant totals are ≤ 1.4e-4 in any component, far under 0.1 lbf.
+- EPSILON (UIM 5293) prints one line per subcase, around 1e-15 here. Nastran itself flags
+  values > 1e-3.
+- AUTOSPC removed 51,879 singularities (solid-element rotations), so expect this on every
+  solid model; report the count only.
+- Two Simcenter versions appear (10/17/25 and 4/24/23). The parser must not depend on the
+  version banner.
+- **Inertia sign:** in GPWG `I(S)`, Ixy = +5.385. The rigid-body mass matrix MO is a
+  tensor with MO(4,5) = −2.049. Shifting to the CG: −2.049 + m·x·y = −2.049 +
+  1.9003·0.39607·(−4.43269) = −5.385. So MO uses the tensor (−∫xy dm), and **I(S) prints
+  products as +∫xy dm, the usual CAD convention.** Compare CAD targets against I(S)
+  directly. This is derived arithmetically from the sample, not stated in the QRG.
+- pyNastran 1.4.1 reads both OP2s (warning: "nx version='2512' is not supported", but every
+  table loads): displacements, spc_forces, load_vectors, CBUSH/CBEAM/CQUAD4/CTRIA3 forces,
+  and `grid_point_weight` (mass, cg, IS, IQ, Q).
+- **The user's templates differ from the Book in two places:**
+  - `1G_check_template.dat` runs gravity on the same single-grid mount (set 3, grid
+    199999), not the "real" mount.
+  - `UD_check-template.dat` has `SPC = 1` but the SPC1 card is set 2. The real run's
+    .f06 shows `SPC = 2`, so the template file is stale.
 
 ## Engineering notes
 
