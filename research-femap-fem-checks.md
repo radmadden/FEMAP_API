@@ -61,8 +61,20 @@ _TBD — research pass. Things to find:_
 
 ## Open design questions (for the plan)
 
+0. **Architecture:** FEMAP API macro vs Python (pyNastran) vs hybrid. FEMAP exports one
+   base .bdf; Python builds the check decks, runs Nastran, parses OP2/.f06 and writes the
+   report?
+   >> (2026-11-03, chat) user leaning Python; asked for a recommendation. Recommended:
+   Python end to end, FEMAP only exports the base deck. Awaiting confirmation.
 1. "Unit grab check" — is this the 1g gravity check (X, Y, Z separately)? Any combined or
    +/- direction cases needed?
+   >> yes, gravity check. (+/- and combined cases still open.)
+1a. Thermal soak constraint: user thinks it should be unconstrained, wants it checked
+   against the I-book (not in this repo; need the user to supply it or the relevant page).
+   Note: a truly unconstrained SOL 101 is singular and Nastran will fail, unless you use
+   inertia relief (`PARAM,INREL,-2`). In practice "unconstrained" means a statically
+   determinate mount whose SPC forces come out ~0. That's mechanically identical to free
+   expansion, and the ~0 reactions are themselves part of the check.
 2. Pass/fail criteria: what thresholds for rigid-body mode frequency (e.g. < 1e-3 Hz?),
    ground-check strain energy, OLOAD vs SPCFORCE % difference, thermal soak max stress?
    Or is the report data-only with no pass/fail?
