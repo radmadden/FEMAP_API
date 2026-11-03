@@ -1,0 +1,3 @@
+# fem_checks runtime dependencies (tkinter ships with the python.org Windows installer)
+pyNastran==1.4.1
+reportlab>=4.0

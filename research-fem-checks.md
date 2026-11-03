@@ -149,7 +149,7 @@ samples has 24,851 grids, CHEXA/CQUAD4/CBEAM/CBUSH/RBE2/RBE3/CONM2 elements, mas
 
 **What the sample .f06s show:**
 - **Rigid-body mode frequencies are 1.0e-4 to 4.3e-4 Hz; the 7th mode is 133 Hz.** On
-  FEMCI's absolute ≤ 1e-4 Hz criterion, **this model fails 5 of its 6 rigid-body modes**,
+  FEMCI's absolute ≤ 1e-4 Hz criterion, **this model fails 4 of its 6 rigid-body modes**,
   even though GROUNDCHECK passes every set with margins of 1e4-1e7. The absolute limit
   doesn't scale with model size or units. The ratio f6/f7 = 3.2e-6 is the meaningful
   number. See the plan's decisions to confirm.
