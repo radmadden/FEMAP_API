@@ -1,4 +1,4 @@
-# Research: FEM checkout suite ("I-book checks") in one macro
+# Research: FEM validation checks (FEMCI Book) in one tool
 
 **Status:** idea captured 2026-11-02. API research NOT started — no api.pdf line refs yet.
 Next step is the research pass below, then the user answers the open questions inline.
@@ -106,7 +106,7 @@ _TBD — research pass. Things to find:_
    +/- direction cases needed?
    >> yes, gravity check. (+/- and combined cases still open.)
 1a. Thermal soak constraint: user thinks it should be unconstrained, wants it checked
-   against the I-book.
+   against the FEMCI Book.
    **Resolved by FEMCI (~2289, ~2297): kinematic mount, one grid 123456.** See table above.
    Note: a truly unconstrained SOL 101 is singular and Nastran will fail, unless you use
    inertia relief (`PARAM,INREL,-2`). In practice "unconstrained" means a statically
@@ -131,5 +131,5 @@ _TBD — research pass. Things to find:_
    the user run them, then a second pass parses results?
 8. Any Nastran flavor constraints (MSC vs Simcenter/NX)? GROUNDCHECK and some PARAMs
    differ slightly.
-9. Anything else from your I-book checklist that belongs here (mass/CG vs expected,
+9. Anything else from the FEMCI Book or your own checklist that belongs here (mass/CG vs expected,
    element quality, free edges, coincident nodes, `PARAM,AUTOSPC` / `MAXRATIO` review)?
