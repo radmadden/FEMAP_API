@@ -1,3 +1,5 @@
-# fem_checks runtime dependencies (tkinter ships with the python.org Windows installer)
+# fem_checks runtime dependencies.
+# Python 3.10-3.12 only: pyNastran 1.4.1 needs numpy < 2, whose Windows wheels stop at 3.12.
+# tkinter (for the GUI) ships with the python.org installer ("tcl/tk and IDLE" option).
 pyNastran==1.4.1
 reportlab>=4.0

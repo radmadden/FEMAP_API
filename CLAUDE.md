@@ -81,6 +81,8 @@ The same research → plan → implement workflow applies. Name the docs
   from those files.
 - Pin `pyNastran==1.4.1` in `requirements.txt`. Read Simcenter decks/OP2s with
   `mode='nx'`.
+- Python 3.10-3.12 only (pyNastran 1.4.1 needs numpy < 2; no Windows wheels past 3.12).
+  Environment setup: `setup_fem_checks.bat` -> `fem_checks/setup_env.py`.
 - Nastran can't run here, so these tools are verified only against sample files. Say so.
 - Reference PDFs: `FEMCI-The-Book.pdf` (extract to `femci.txt`), `QRG.pdf` (Simcenter
   Nastran Quick Reference Guide, extract to `qrg.txt`), same `pdftotext -layout` method.

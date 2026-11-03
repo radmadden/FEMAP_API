@@ -1,0 +1,6 @@
+# Extras for development and the design notebook (installed by setup_env unless --no-dev)
+pytest>=8
+notebook>=7
+ipykernel>=6
+nbformat>=5
+nbclient>=0.10

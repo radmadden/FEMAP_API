@@ -179,3 +179,43 @@ def test_real_deck_trace_and_roundtrip(tmp_path):
         assert set(a) == set(b), name
         for k in a:
             assert a[k].repr_fields() == b[k].repr_fields(), (name, k)
+
+
+# ------------------------------------------------------------- setup_env
+def test_setup_python_version_gate():
+    from fem_checks.setup_env import python_ok
+    assert python_ok((3, 12, 0))[0] and python_ok((3, 10, 1))[0]
+    ok, msg = python_ok((3, 13, 0))
+    assert not ok and "3.12" in msg
+
+
+def test_setup_vscode_merge_keeps_user_values(tmp_path):
+    import json
+    from fem_checks.setup_env import write_vscode
+    vs = tmp_path / ".vscode"
+    vs.mkdir()
+    (vs / "settings.json").write_text(json.dumps({"python.defaultInterpreterPath": "C:/mine/python.exe",
+                                                  "editor.fontSize": 15}))
+    (vs / "launch.json").write_text(json.dumps({"version": "0.2.0", "configurations": [
+        {"name": "FEM checks: GUI", "type": "debugpy", "request": "launch", "module": "custom"}]}))
+    write_vscode(tmp_path)
+    write_vscode(tmp_path)   # idempotent
+    st = json.loads((vs / "settings.json").read_text())
+    assert st["python.defaultInterpreterPath"] == "C:/mine/python.exe" and st["editor.fontSize"] == 15
+    assert st["python.testing.pytestArgs"] == ["fem_checks/tests"]
+    la = json.loads((vs / "launch.json").read_text())
+    names = [c["name"] for c in la["configurations"]]
+    assert names.count("FEM checks: GUI") == 1 and la["configurations"][0]["module"] == "custom"
+    assert len(la["inputs"]) == 1
+    ex = json.loads((vs / "extensions.json").read_text())
+    assert ex["recommendations"] == ["ms-python.python", "ms-toolsai.jupyter"]
+
+
+def test_setup_find_nastran(tmp_path):
+    from fem_checks.setup_env import find_nastran
+    for ver in ("2412", "2512"):
+        d = tmp_path / f"FEMAP {ver}" / "NASTRAN" / "bin"
+        d.mkdir(parents=True)
+        (d / "nastran.exe").write_text("")
+    found = find_nastran([str(tmp_path / "FEMAP*" / "NASTRAN" / "bin" / "nastran*.exe")])
+    assert "2512" in found[0]   # newest first

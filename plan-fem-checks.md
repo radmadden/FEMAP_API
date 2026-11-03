@@ -308,7 +308,7 @@ Folder `<deck>_fem_checks\`:
 
 **Implemented, not yet run in Nastran** (updated 2026-11-04 after the plan review).
 Code: `fem_checks/` (Python package). Design document: `fem_checks/fem_checks_design.ipynb`.
-Tests: `python -m pytest fem_checks/tests` (15 pass). They cover:
+Tests: `python -m pytest fem_checks/tests` (18 pass). They cover:
 - the .f06 parsers against the three real sample .f06s;
 - the check logic on those files;
 - model reading, the mount rules and deck contents, on a small generated model;
@@ -325,10 +325,23 @@ Verified on the full deck with the sample OP2s:
 Not yet exercised: a real Nastran run of the generated decks, the thermal and
 constrained-modes checks (no sample outputs), and the GUI (no display here).
 
-**How to run** (Windows, from the repo folder):
+**Setup** (added 2026-11-04 at the user's request): install Python **3.12** (python.org,
+tick *py launcher* and *tcl/tk and IDLE*), then double-click `setup_fem_checks.bat`. It
+creates `.venv`, then `fem_checks/setup_env.py` does the rest:
+- installs `requirements.txt` + `requirements-dev.txt`;
+- registers a Jupyter kernel;
+- merges `.vscode/` settings, recommended extensions and run configurations, keeping any
+  existing values;
+- finds `nastran.exe` and pre-fills the GUI with it;
+- checks every import and runs the tests.
+
+**Python 3.13+ cannot work:** pyNastran 1.4.1 requires numpy < 2, and numpy 1.26 has no
+Windows wheels past 3.12 (checked against PyPI). Untested on Windows; the module's logic is
+unit-tested here.
+
+**How to run** (from the repo folder):
 ```
-pip install -r fem_checks/requirements.txt
-python -m fem_checks                      # GUI
+.venv\Scripts\python -m fem_checks        # GUI (or VS Code: Run > "FEM checks: GUI")
 python -m fem_checks path/to/fem_checks.json          # same run, no GUI
 python -m fem_checks path/to/fem_checks.json --no-run # re-evaluate existing outputs
 ```
@@ -338,7 +351,7 @@ but the user confirmed a hand-written deck with no checksum runs on the workstat
 Femap-bundled Simcenter Nastran. The tool strips the checksum on read.
 
 First-run checklist (on your PC, with the sample model):
-1. `pip install -r fem_checks/requirements.txt`, then `python -m fem_checks` opens the GUI.
+1. Run `setup_fem_checks.bat`; it should end with "Setup complete." Then `.venv\Scripts\python -m fem_checks` opens the GUI.
 2. Diff the model's GPWG mass/CG/I(S) in `01_freefree.f06` against your own free-free
    .f06. They must match to every printed digit. If they don't, the bulk rewrite lost
    something.

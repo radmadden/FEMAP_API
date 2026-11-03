@@ -20,7 +20,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from .settings import UNIT_SYSTEMS, Settings
 
-LAST = Path.home() / ".fem_checks_last.json"
+from .gui_paths import LAST  # remembered form (also pre-filled by setup_env)
 
 CHECK_LABELS = [
     ("model_summary", "Model summary (counts, element quality)"),
