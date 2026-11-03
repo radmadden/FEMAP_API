@@ -37,7 +37,7 @@ Research: `research-fem-checks.md`. Reference docs: `FEMCI-The-Book.pdf` (femci 
 ## Decisions to confirm (all 8 approved by the user 2026-11-04; #8 = model deck, pending upload)
 
 1. **Rigid-body mode criterion.** Your sample model's rigid-body modes are 1.0e-4 to
-   4.3e-4 Hz. **It fails FEMCI's absolute ≤ 1e-4 Hz limit on 5 of 6 modes**, yet
+   4.3e-4 Hz. **It fails FEMCI's absolute ≤ 1e-4 Hz limit on 4 of 6 modes**, yet
    GROUNDCHECK passes everywhere by orders of magnitude.
    - Proposal: PASS if f_6 / f_7 ≤ 1e-4 (six decades between the last rigid mode and the
      first elastic mode). Your sample sits at 3.2e-6.
@@ -73,6 +73,13 @@ Research: `research-fem-checks.md`. Reference docs: `FEMCI-The-Book.pdf` (femci 
    - (c) max element force per type (CBUSH/CBEAM/CBAR/shells) ≤ the same 0.1 / 1.0
      thresholds. Shell forces are per unit length, so this is a judgment call. Top-N
      offenders are listed either way.
+   - **Changed during implementation (2026-11-04):** shell forces are judged at the
+     **element centroid**. In the user's `ud_check-0000.op2`, the CQUAD4 centroid forces
+     are ≤ 1.6e-7 in every subcase. The CORNER (bilinear) rows reach 33-82 lbf/in, but
+     only in the three rotation subcases and only in about 88 elements. That's a recovery
+     artifact under a 1 rad rigid rotation, not grounding. Corner peaks above the limit
+     are listed in an INFO table with the element IDs. Beams (CBEAM end stations) and
+     bushes use every row.
 
    GPFORCE is not requested. It's huge on a 25k-grid model and (a)+(b) cover it.
 6. **Free-free mode count:** ND = 10 by default (6 rigid + 4 elastic), editable. The
@@ -123,15 +130,23 @@ GUI fields, saved to `fem_checks.json` next to the deck:
    tests and refuse with a reason if one fails. Record the distance to the CG as a fraction
    of the model size.
 4. **Write the bulk data once.** Write `model_bulk.bdf` with pyNastran in **16-character
-   large-field format**, so coordinates and properties don't lose precision. Leave out the
-   model's PARAM AUTOSPC/GRDPNT/POST/K6ROT and any EIGRL/EIGR, so each check deck controls
-   its own. Added cards use a reserved ID block (9,000,001+), checked for collisions.
+   large-field format**, so coordinates and properties don't lose precision.
+   - Removed: the model's PARAM AUTOSPC/GRDPNT/POST/OGEOM/PRGPST, so each check deck
+     controls its own.
+   - **Kept:** K6ROT, WTMASS and every other PARAM, since they change the answers. The
+     model's own LOAD/SPC/EIGRL cards are also kept; nothing references them, and the
+     check IDs avoid them.
+   - Added cards use a reserved ID block (9,000,001+), checked for collisions.
+   - **Case control carried over:** NSM, MPC and the DMIG selections (K2GG/M2GG/B2GG/...)
+     are copied from the FEMAP deck into every check deck. The user's 1G template has
+     `NSM = 2`, so dropping it would drop mass.
+   - The FEMAP checksum on the `ENDDATA` line is stripped before pyNastran reads the deck.
 5. **Write the check decks.** Each is executive + case control + small bulk + `INCLUDE`:
    - `01_freefree.dat`: SOL 103, no SPC.
      - `GROUNDCHECK(PRINT,SET=(G,N,N+AUTOSPC,F,A),GRID=m,DATAREC=YES)=YES`
      - `WEIGHTCHECK(PRINT,SET=(G,N,N+AUTOSPC,F,A),GRID=m,CGI=YES,MASS)=YES`
-     - `PARAM,GRDPNT,m` gives the GPWG about the mount; CG and I(S) are about the CG
-       regardless.
+     - `PARAM,GRDPNT,0`, as in the user's decks. CG and I(S) are about the CG either
+       way; the mount is the WEIGHTCHECK/GROUNDCHECK reference grid.
      - EIGRL with ND = N, `DISP(PLOT)=ALL`, `PARAM,AUTOSPC` per option.
    - `02_constrained_modes.dat`: SOL 103, SPC = gravity set (or mount),
      `MEFFMASS(PRINT,PLOT,FRACSUM,SUMMARY)=YES`, EIGRL ND = N.
@@ -245,23 +260,44 @@ Folder `<deck>_fem_checks\`:
 - The thermal check overwrites every CTE, so it tests model consistency, not the real
   material response.
 - Shell element forces are per unit length; the unit-displacement threshold for them is a
-  judgment call (decision #5).
+  judgment call (decision #5). They're judged at centroids; corners are INFO.
+- pyNastran 1.4.1 has no RTRPLT card. A deck containing one will stop at read time with
+  pyNastran's message.
+- Mass targets can be typed in model units, lbm (inch systems, ÷ 386.0886) or kg (SI).
+- The auto-picked mount uses pyNastran's CG, which ignores NSM. The GPWG CG in the
+  report is the authoritative one; the offset printed there is from the pyNastran CG.
 - **Nothing can run Nastran here.** Parsers get tested against your sample .f06/.op2 files;
   the end-to-end run is untested until you run it.
 
 ## Status
 
-**Plan approved** (2026-11-04). Not implemented yet; waiting on the full model deck upload
-for deck-writing tests.
+**Implemented, not yet run in Nastran** (2026-11-04). Code: `fem_checks/` (Python
+package). Tests: `python -m pytest fem_checks/tests` (14 pass). They cover:
+- the .f06 parsers against the three real sample .f06s;
+- the check logic on those files (free-free PASS with ratio 3.2e-6; gravity PASS, and FAIL
+  with a 1% mass error; mass properties with both product conventions);
+- model reading with a FEMAP checksum, mount auto-pick and rejections, bulk and thermal
+  writing, and deck contents, on a small generated model;
+- an end-to-end run with a stand-in Nastran that copies the sample outputs, which built the
+  PDF report.
+
+Not yet exercised: a real Nastran run of the generated decks, the displacement-field theory
+checks on a real model (needs the full model deck), and the GUI (no display here).
+
+**How to run** (Windows, from the repo folder):
+```
+pip install -r fem_checks/requirements.txt
+python -m fem_checks                      # GUI
+python -m fem_checks path/to/fem_checks.json          # same run, no GUI
+python -m fem_checks path/to/fem_checks.json --no-run # re-evaluate existing outputs
+```
 
 Checksum question resolved: FEMAP-exported decks end with a checksum (`ENDDATA b482e8c1`),
 but the user confirmed a hand-written deck with no checksum runs on the workstation's
-Femap-bundled Simcenter Nastran. Python-written decks are fine, and the architecture stands.
-The tool must still read FEMAP decks that carry the trailing checksum on the `ENDDATA`
-line; check that pyNastran tolerates it, and strip it on read if not.
+Femap-bundled Simcenter Nastran. The tool strips the checksum on read.
 
 First-run checklist (on your PC, with the sample model):
-1. `pip install pyNastran reportlab`, then `python -m fem_checks` opens the GUI.
+1. `pip install -r fem_checks/requirements.txt`, then `python -m fem_checks` opens the GUI.
 2. Diff the model's GPWG mass/CG/I(S) in `01_freefree.f06` against your own free-free
    .f06. They must match to every printed digit. If they don't, the bulk rewrite lost
    something.

@@ -69,6 +69,22 @@ The PDF is large, so extract it once to text in the scratchpad and grep that:
 - Nothing can run FEMAP from here, so code is verified against api.pdf only. Always say it's
   untested in FEMAP.
 
+## Python tools (e.g. `fem_checks/`)
+
+The same research → plan → implement workflow applies. Name the docs
+`research-<topic>.md` / `plan-<topic>.md` when FEMAP isn't involved. Conventions:
+- A package folder with a module docstring per file stating what it does and which
+  reference (`femci ~line`, `qrg ~line`, sample file) each non-obvious choice comes from.
+  Comment as verbosely as the `.bas` macros.
+- Tests under `<package>/tests/` (`python -m pytest <package>/tests`). Parsers are
+  tested against the real sample outputs in the repo root; expected numbers are copied
+  from those files.
+- Pin `pyNastran==1.4.1` in `requirements.txt`. Read Simcenter decks/OP2s with
+  `mode='nx'`.
+- Nastran can't run here, so these tools are verified only against sample files. Say so.
+- Reference PDFs: `FEMCI-The-Book.pdf` (extract to `femci.txt`), `QRG.pdf` (Simcenter
+  Nastran Quick Reference Guide, extract to `qrg.txt`), same `pdftotext -layout` method.
+
 ## Git
 
 - Commit only when the user asks. Stage only the files for the current macro. The working
