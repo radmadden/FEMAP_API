@@ -238,23 +238,15 @@ Folder `<deck>_fem_checks\`:
 
 ## Status
 
-**Plan on hold (2026-11-04): the architecture may change.** The user reports that
-FEMAP-exported decks end with a checksum (`ENDDATA b482e8c1`). The sample .f06s show the
-solver installed under `C:/PROGRAM FILES/SIEMENS/FEMAP 2512/NASTRAN`, so it's probably
-the Femap-bundled Simcenter Nastran. [Likely] That bundle only runs decks that FEMAP
-wrote. If so, Python-written decks won't run, and steps 4-6 above must move into a FEMAP
-API macro:
-- the macro builds the check load/constraint/analysis sets in a "FEM checks" folder;
-- FEMAP exports and runs them;
-- Python keeps the parsing, checks and PDF report.
+**Plan written, awaiting approval** (2026-11-04). Not implemented.
 
-**Test to settle it:** run a hand-written deck with no checksum (e.g. any small deck typed
-in a text editor) on the workstation's Nastran. If it runs, this plan stands. If the
-solver refuses it, rewrite the plan as FEMAP macro + Python report.
+Checksum question resolved: FEMAP-exported decks end with a checksum (`ENDDATA b482e8c1`),
+but the user confirmed a hand-written deck with no checksum runs on the workstation's
+Femap-bundled Simcenter Nastran. Python-written decks are fine, and the architecture stands.
+The tool must still read FEMAP decks that carry the trailing checksum on the `ENDDATA`
+line; check that pyNastran tolerates it, and strip it on read if not.
 
-First run (applies once the architecture is settled):
-
-Checklist (on your PC, with the sample model):
+First-run checklist (on your PC, with the sample model):
 1. `pip install pyNastran reportlab`, then `python -m fem_checks` opens the GUI.
 2. Diff the model's GPWG mass/CG/I(S) in `01_freefree.f06` against your own free-free
    .f06. They must match to every printed digit. If they don't, the bulk rewrite lost
