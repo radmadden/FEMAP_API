@@ -52,11 +52,19 @@ Research: `research-fem-checks.md`. Reference docs: `FEMCI-The-Book.pdf` (femci 
    free-free, constrained modes, unit displacement, gravity, thermal. Your own templates
    are separate decks, and splitting keeps each run's SPC simple. It costs a few minutes
    of extra runtime, and nobody's watching it anyway.
-4. **Rigid elements in the thermal soak.**
-   - Default: leave RBE2s rigid. A non-expanding RBE2 spanning distance shows up as
-     stress, which the Book treats as a defect (femci ~2318).
-   - Option (checkbox): set RBE2 `ALPHA` = α and add `RIGID=LAGRAN` (qrg ~112944) so
-     rigid elements expand too. Only stress from real defects remains.
+4. **Rigid elements in the thermal soak** (user changed this 2026-11-04): **always** give
+   every rigid element the uniform CTE and run with `RIGID=LAGRAN`. No checkbox.
+   - `ALPHA` = α goes on every RBAR, RBE1, RBE2, RBE3, RROD and RTRPLT. All six have an
+     ALPHA field; RBE2 is at qrg ~112917.
+   - `RIGID=LAGRAN` goes above the subcase level (qrg ~26012). LINEAR, the default, computes
+     no thermal loads for rigid elements (remark 3).
+   - Under LAGRAN, rigid element IDs must be ≤ 1e8 (remark 3). The tool checks this and
+     refuses with a list of offending IDs.
+   - Rigid-element thermal strain uses AVGTEMP(LOAD) − AVGTEMP(INIT) (qrg ~112944), so
+     `TEMP(INIT)` is required. Step 5 already sets it.
+   - With everything expanding uniformly, remaining stress points at real defects:
+     CBUSH/CELAS between non-coincident grids, MAT8/MAT9 anisotropy the overwrite
+     missed, and similar.
 5. **Unit-displacement pass criteria.** Three parts, all must pass:
    - (a) mount SPCFORCE resultant ≤ 0.1 lbf / 1.0 in-lbf, converted to the chosen units
      (femci ~1965);
@@ -89,7 +97,6 @@ GUI fields, saved to `fem_checks.json` next to the deck:
 | Checks to run | all except thermal | Thermal only for thermal-distortion models (femci ~1891) |
 | Free-free / constrained mode count | 10 / 10 | |
 | AUTOSPC in free-free | YES | QRG default; NO is stricter, but may fail on singularities |
-| RBE2s expand in thermal | off | Decision to confirm #4 |
 | Mass-property targets | blank (skip) | Mass, CG x/y/z, Ixx..Iyz about CG in basic, each with tolerance; product convention +∫xy (CAD) or −∫xy (tensor) |
 | Thresholds | defaults above | Editable in an "Advanced" frame |
 
@@ -140,10 +147,12 @@ GUI fields, saved to `fem_checks.json` next to the deck:
        - MAT8 A1=A2=α, TREF=0;
        - MAT9 A1=A2=A3=α, A4..A6=0;
        - PCOMP/PCOMPG TREF=0;
-       - MATT* removed.
+       - MATT* removed;
+       - RBAR/RBE1/RBE2/RBE3/RROD/RTRPLT ALPHA=α (decision #4).
      - α = 1.0e-5 (arbitrary; all criteria are normalized).
-     - Case control: `TEMP(INIT)=9000021` (TEMPD 0.0), `TEMP(LOAD)=9000022` (TEMPD 1.0).
-     - Output: `DISP`, `SPCF`, `STRESS(PLOT)`; RBE2 option per decision #4.
+     - Case control: `RIGID=LAGRAN`, `TEMP(INIT)=9000021` (TEMPD 0.0),
+       `TEMP(LOAD)=9000022` (TEMPD 1.0).
+     - Output: `DISP`, `SPCF`, `STRESS(PLOT)`.
 6. **Run Nastran** on each deck in turn: `nastran.exe <deck> scr=yes old=no batch=no
    out=<folder>`. Wait for it to finish, then capture the exit code, .f06, .f04 and .log.
    A failed run (FATAL in the .f06, or no .op2) marks that check **ERROR** and the tool
@@ -178,7 +187,7 @@ GUI fields, saved to `fem_checks.json` next to the deck:
    - **Thermal:**
      - displacement error ≤ 1e-3;
      - stress ratio ≤ 1e-3;
-     - top-20 stressed elements listed with type and nearest RBE2/CBUSH;
+     - top-20 stressed elements listed with type and nearest CBUSH/CELAS/rigid element;
      - mount reaction reported.
    - **Mass properties:** each supplied target within its tolerance. Mass and inertia use a
      % tolerance; CG uses a length. Values come from free-free GPWG I(S), which is
@@ -261,6 +270,8 @@ First-run checklist (on your PC, with the sample model):
 6. The gravity OLOAD T1 = 733.7038 and SPCFORCE T1 = −733.7038, as in
    `1g_unit_load_check-0000.f06`.
 7. Thermal: spot-check one far grid: u ≈ 1e-5 × (r − r_m). Then look at the top-20
-   list in FEMAP; the elements named should be near RBE2s or CBUSHes.
+   list in FEMAP. With rigid elements expanding, the elements named should point at
+   CBUSH/CELAS connections or anisotropic materials, not at every RBE2 spider. If RBE2
+   spiders still dominate, check the .f06 echo for `RIGID = LAGRAN`.
 8. Make one check fail deliberately (e.g. add a CELAS2 to ground). GROUNDCHECK G-set must
    FAIL and the report's top table must show it.
