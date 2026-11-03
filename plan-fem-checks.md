@@ -42,6 +42,7 @@ Research: `research-fem-checks.md`. Reference docs: `FEMCI-The-Book.pdf` (femci 
    - Proposal: PASS if f_6 / f_7 ≤ 1e-4 (six decades between the last rigid mode and the
      first elastic mode). Your sample sits at 3.2e-6.
    - Print the Book's absolute 1e-4 Hz alongside as INFO.
+   >> just skip the books absolutes, the 6-7 separation is what matters
    - The alternative is to keep the Book's limit and accept that good solid models fail.
 2. **Gravity on which mount.** Your `1G_check_template.dat` runs gravity on the
    single-grid mount, not the real mount the Book asks for. Proposal: the GUI field
@@ -109,7 +110,7 @@ GUI fields, saved to `fem_checks.json` next to the deck:
    - node/element/property/material counts by card type;
    - element quality via `element_quality()`;
    - mass properties via `mass_properties()`.
-
+   >>how are element quality limits determined? are there default nastran limits? or femap limits?
    If pyNastran fails to read the deck, stop with the card name it choked on.
 3. **Pick the mount grid.** If auto, take candidates that pass all of:
    - (a) a GRID connected to an element with rotational stiffness: shell, CBEAM, CBAR,
@@ -134,9 +135,11 @@ GUI fields, saved to `fem_checks.json` next to the deck:
      - EIGRL with ND = N, `DISP(PLOT)=ALL`, `PARAM,AUTOSPC` per option.
    - `02_constrained_modes.dat`: SOL 103, SPC = gravity set (or mount),
      `MEFFMASS(PRINT,PLOT,FRACSUM,SUMMARY)=YES`, EIGRL ND = N.
+     >>this will have to ask for the real constraint set
    - `03_unit_disp.dat`: SOL 101, `SPC1 9000001 123456 m`.
      - 6 subcases, `LOAD` → `SPCD` 1.0 in DOF 1..6.
      - Output: `DISP(PLOT)`, `SPCF(PLOT)`, `OLOAD(PLOT)`, `FORCE(PLOT,CORNER)`.
+     >>the spc1 node needs to be chosen per the mount grid, not hard coded to 9000001
    - `04_gravity.dat`: SOL 101, SPC = gravity set.
      - 3 subcases with `GRAV` in X/Y/Z at g for the unit system.
      - Output: `DISP`, `SPCF`, `OLOAD`; `WEIGHTCHECK(SET=G,MASS)=YES`.
@@ -153,6 +156,7 @@ GUI fields, saved to `fem_checks.json` next to the deck:
      - Case control: `RIGID=LAGRAN`, `TEMP(INIT)=9000021` (TEMPD 0.0),
        `TEMP(LOAD)=9000022` (TEMPD 1.0).
      - Output: `DISP`, `SPCF`, `STRESS(PLOT)`.
+     >>lets have the check decks include the original model title for traceability
 6. **Run Nastran** on each deck in turn: `nastran.exe <deck> scr=yes old=no batch=no
    out=<folder>`. Wait for it to finish, then capture the exit code, .f06, .f04 and .log.
    A failed run (FATAL in the .f06, or no .op2) marks that check **ERROR** and the tool
@@ -275,3 +279,6 @@ First-run checklist (on your PC, with the sample model):
    spiders still dominate, check the .f06 echo for `RIGID = LAGRAN`.
 8. Make one check fail deliberately (e.g. add a CELAS2 to ground). GROUNDCHECK G-set must
    FAIL and the report's top table must show it.
+
+
+>> all good, this also needs to be a jupityr notebook with code blocks and and markdowns that act as a design document with verbose commenting and explanation for multiple users
