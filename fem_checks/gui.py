@@ -72,8 +72,13 @@ class App(tk.Tk):
         r += 1
         r = self._entry_row(main, r, "Mount grid (blank = auto, nearest CG)", "mount_grid",
                             s.mount_grid or "")
-        r = self._entry_row(main, r, "Gravity / constrained-modes SPC set (blank = kinematic mount)",
-                            "gravity_spc_set", s.gravity_spc_set or "")
+        r = self._entry_row(main, r, "Real constraint SPC set ID (needed for constrained modes)",
+                            "real_spc_set", s.real_spc_set or "")
+        ttk.Label(main, text="Gravity check mount").grid(row=r, column=0, sticky="w")
+        self.v["gravity_mount"] = tk.StringVar(value=s.gravity_mount)
+        ttk.Combobox(main, textvariable=self.v["gravity_mount"], values=["kinematic", "real"],
+                     state="readonly", width=20).grid(row=r, column=1, sticky="w")
+        r += 1
         box = ttk.LabelFrame(main, text="Checks")
         box.grid(row=r, column=0, columnspan=3, sticky="we", pady=4)
         for i, (k, label) in enumerate(CHECK_LABELS):
@@ -173,7 +178,8 @@ class App(tk.Tk):
         s.deck, s.nastran_exe, s.output_dir = g("deck").strip(), g("nastran_exe").strip(), g("output_dir").strip()
         s.units = g("units")
         s.mount_grid = _num(g("mount_grid"), int) or 0
-        s.gravity_spc_set = _num(g("gravity_spc_set"), int) or 0
+        s.real_spc_set = _num(g("real_spc_set"), int) or 0
+        s.gravity_mount = g("gravity_mount")
         s.checks = {k: bool(self.v[f"chk_{k}"].get()) for k, _ in CHECK_LABELS}
         s.autospc_freefree = bool(self.v["autospc_freefree"].get())
         s.n_modes_freefree = int(g("n_modes_freefree"))

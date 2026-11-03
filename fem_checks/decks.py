@@ -76,15 +76,35 @@ def _cc(line: str, indent: str = "  ") -> str:
     return "\n".join(parts)
 
 
-def _deck(sol: int, title: str, global_cc: list, subcases: list, bulk: list,
-          include: str, carried: list) -> str:
-    out = [
-        "$ Written by fem_checks (FEM validation). Regenerate instead of editing.",
+def _trace_header(trace: dict) -> list[str]:
+    """$-comment block naming where this deck came from (user request: traceability)."""
+    import datetime as _dt
+    lines = ["$ Written by fem_checks (FEM validation). Regenerate instead of editing.",
+             f"$ Written    : {_dt.datetime.now():%Y-%m-%d %H:%M}",
+             f"$ Source deck: {trace.get('deck', '-')}"]
+    if trace.get("femap_model"):
+        lines.append(f"$ FEMAP model: {trace['femap_model']}  (exported {trace.get('femap_date', '-')})")
+    if trace.get("title") or trace.get("subtitle"):
+        lines.append(f"$ Model title: {trace.get('title', '')} / {trace.get('subtitle', '')}")
+    return [x[:80] for x in lines]
+
+
+def _deck(sol: int, check_name: str, global_cc: list, subcases: list, bulk: list,
+          include: str, carried: list, trace: dict) -> str:
+    """TITLE and SUBTITLE are the model deck's own (so every .f06 page says which model it
+    is); the check name goes in LABEL. Subcase descriptions also use LABEL so they don't
+    replace the model subtitle."""
+    title = trace.get("title") or "FEM VALIDATION CHECKS"
+    out = _trace_header(trace)
+    out += trace.get("nastran_statements", [])
+    out += [
         f"SOL {sol}",
         "CEND",
-        _cc(f"TITLE = {title}"),
-        _cc("ECHO = NONE"),
+        _cc(f"TITLE = {title}"[:72]),
     ]
+    if trace.get("subtitle"):
+        out.append(_cc(f"SUBTITLE = {trace['subtitle']}"[:72]))
+    out += [_cc(f"LABEL = {check_name}"[:72]), _cc("ECHO = NONE")]
     out += ["$ carried from the model deck (mass / MPC / DMIG selection)"] if carried else []
     out += [_cc(x) for x in carried]
     out += [_cc(x) for x in global_cc]
@@ -99,14 +119,18 @@ def _deck(sol: int, title: str, global_cc: list, subcases: list, bulk: list,
 
 
 def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
-                gravity_spc: int, g: float, n_free: int, n_con: int,
-                autospc_free: bool, carried: list,
+                gravity_spc: int, real_spc: int, g: float, n_free: int, n_con: int,
+                autospc_free: bool, carried: list, trace: dict | None = None,
                 bulk_file: str = "model_bulk.bdf",
                 thermal_bulk_file: str = "model_bulk_thermal.bdf") -> dict[str, Path]:
     """Write the decks named in ``which`` (keys of DECK_NAMES). Returns {key: path}.
 
-    gravity_spc: SPC set used for gravity and constrained modes; ids.mount_spc when the
-    user left it blank (decision #2)."""
+    mount:       the kinematic-mount grid (auto-picked or user-entered). The SPC1 card is
+                 "SPC1, <set id>, 123456, <mount>": ids.mount_spc is only the SET ID the
+                 case control selects; the constrained GRID is always ``mount``.
+    gravity_spc: SPC set for the gravity check (ids.mount_spc or the real set, decision #2).
+    real_spc:    the model's real boundary-condition set, used by constrained modes."""
+    trace = trace or {}
     out_dir = Path(out_dir)
     paths = {}
     mount_spc_card = f"SPC1,{ids.mount_spc},123456,{mount}"
@@ -130,12 +154,13 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
         ]
         p = out_dir / DECK_NAMES["freefree"]
         p.write_text(_deck(103, "FEM CHECK 01 FREE-FREE MODES + GROUNDCHECK", cc,
-                           [(1, ["LABEL = FREE-FREE, NO SPC"])], bulk, bulk_file, carried))
+                           [(1, ["LABEL = FEM CHECK 01 FREE-FREE, NO SPC"])], bulk, bulk_file,
+                           carried, trace))
         paths["freefree"] = p
 
     if "constrained_modes" in which:
         cc = [
-            f"SPC = {gravity_spc}",
+            f"SPC = {real_spc}",
             f"METHOD = {ids.eigrl_con}",
             "DISPLACEMENT(PLOT) = ALL",
             # Same request as the user's working free-free deck (case-control echo).
@@ -143,11 +168,10 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
         ]
         bulk = ["PARAM,POST,-1", "PARAM,AUTOSPC,YES", "PARAM,GRDPNT,0",
                 f"EIGRL,{ids.eigrl_con},,,{n_con}"]
-        if need_mount_card:
-            bulk.append(mount_spc_card)
         p = out_dir / DECK_NAMES["constrained_modes"]
         p.write_text(_deck(103, "FEM CHECK 02 CONSTRAINED MODES", cc,
-                           [(1, [f"LABEL = CONSTRAINED, SPC {gravity_spc}"])], bulk, bulk_file, carried))
+                           [(1, [f"LABEL = FEM CHECK 02 CONSTRAINED, SPC {real_spc}"])], bulk,
+                           bulk_file, carried, trace))
         paths["constrained_modes"] = p
 
     if "unit_disp" in which:
@@ -159,14 +183,14 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
             "FORCE(PLOT,CORNER) = ALL",
         ]
         names = ["T1", "T2", "T3", "R1", "R2", "R3"]
-        subs = [(k, [f"SUBTITLE = UNIT ENFORCED {names[k - 1]} AT GRID {mount}",
+        subs = [(k, [f"LABEL = FEM CHECK 03 UNIT ENFORCED {names[k - 1]} AT GRID {mount}",
                      f"LOAD = {ids.spcd(k)}"]) for k in range(1, 7)]
         # qrg ~119845 remark 3: SPCD DOFs must also be on an SPC1 selected by SPC.
         bulk = ["PARAM,POST,-1", "PARAM,AUTOSPC,YES", mount_spc_card]
         bulk += [f"SPCD,{ids.spcd(k)},{mount},{k},1.0" for k in range(1, 7)]
         p = out_dir / DECK_NAMES["unit_disp"]
         p.write_text(_deck(101, "FEM CHECK 03 UNIT ENFORCED DISPLACEMENT", cc, subs,
-                           bulk, bulk_file, carried))
+                           bulk, bulk_file, carried, trace))
         paths["unit_disp"] = p
 
     if "gravity" in which:
@@ -179,7 +203,7 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
             "OLOAD(PLOT) = ALL",
         ]
         axes = ["X", "Y", "Z"]
-        subs = [(k, [f"SUBTITLE = UNIT GRAVITY {axes[k - 1]}", f"LOAD = {ids.grav(k)}"])
+        subs = [(k, [f"LABEL = FEM CHECK 04 UNIT GRAVITY {axes[k - 1]}", f"LOAD = {ids.grav(k)}"])
                 for k in range(1, 4)]
         bulk = ["PARAM,POST,-1", "PARAM,AUTOSPC,YES", "PARAM,GRDPNT,0"]
         vec = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)]
@@ -187,7 +211,8 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
         if need_mount_card:
             bulk.append(mount_spc_card)
         p = out_dir / DECK_NAMES["gravity"]
-        p.write_text(_deck(101, "FEM CHECK 04 UNIT GRAVITY", cc, subs, bulk, bulk_file, carried))
+        p.write_text(_deck(101, "FEM CHECK 04 UNIT GRAVITY", cc, subs, bulk, bulk_file,
+                           carried, trace))
         paths["gravity"] = p
 
     if "thermal" in which:
@@ -201,12 +226,12 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
             "SPCFORCE(PLOT) = ALL",
             "STRESS(PLOT) = ALL",
         ]
-        subs = [(1, ["SUBTITLE = UNIFORM +1 DEGREE SOAK, KINEMATIC MOUNT",
+        subs = [(1, ["LABEL = FEM CHECK 05 UNIFORM +1 DEGREE SOAK",
                      f"TEMPERATURE(LOAD) = {ids.temp_load}"])]
         bulk = ["PARAM,POST,-1", "PARAM,AUTOSPC,YES", mount_spc_card,
                 f"TEMPD,{ids.temp_init},0.0", f"TEMPD,{ids.temp_load},1.0"]
         p = out_dir / DECK_NAMES["thermal"]
         p.write_text(_deck(101, "FEM CHECK 05 THERMAL SOAK", cc, subs, bulk,
-                           thermal_bulk_file, carried))
+                           thermal_bulk_file, carried, trace))
         paths["thermal"] = p
     return paths

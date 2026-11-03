@@ -70,6 +70,8 @@ class ModelInfo:
     wtmass: float
     e_max: float                # largest Young's modulus in the model (thermal stress scale)
     quality: dict = field(default_factory=dict)  # metric -> dict(stats, worst=[(eid, value)])
+    geomcheck: list = field(default_factory=list)  # rows: limit exceedances vs Nastran defaults
+    trace: dict = field(default_factory=dict)      # title/subtitle/FEMAP model for traceability
     notes: list = field(default_factory=list)
 
 
@@ -101,6 +103,37 @@ def read_model(deck: Path, work_dir: Path) -> BDF:
     return model
 
 
+def read_trace(deck: Path) -> dict:
+    """Traceability details from the FEMAP deck, copied into every check deck and the report:
+      title, subtitle      the TITLE / SUBTITLE case-control lines (first occurrence)
+      femap_model, femap_date, femap_version   FEMAP's '$ From Model :' header block
+      nastran_statements   NASTRAN / INIT lines ahead of the executive control
+                           (FEMAP writes e.g. 'NASTRAN SYSTEM(442)=-1,SYSTEM(319)=1');
+                           these are carried so the check runs use the same solver
+                           system settings as the user's own runs."""
+    out = {"deck": str(Path(deck).resolve()), "nastran_statements": []}
+    in_exec = True
+    for line in Path(deck).read_text(errors="replace").splitlines():
+        u = line.strip().upper()
+        if in_exec and (u.startswith("NASTRAN ") or u.startswith("INIT ")):
+            out["nastran_statements"].append(line.strip())
+        if u.startswith(("SOL ", "ID ", "CEND")):
+            in_exec = False
+        m = re.match(r"\s*(TITLE|SUBTITLE)\s*=\s*(.*)$", line, re.IGNORECASE)
+        if m and m.group(1).lower() not in out:
+            out[m.group(1).lower()] = m.group(2).strip()
+        m = re.match(r"\$\s*(From Model|Date|Version)\s*:\s*(.*)$", line.strip(), re.IGNORECASE)
+        if m:
+            key = {"from model": "femap_model", "date": "femap_date",
+                   "version": "femap_version"}[m.group(1).lower()]
+            out.setdefault(key, m.group(2).strip())
+        if u.startswith("BEGIN") and "BULK" in u and "femap_model" in out:
+            break
+        if u.startswith("GRID"):  # the FEMAP header block comes before the first card
+            break
+    return out
+
+
 def carried_case_control(deck: Path) -> list[str]:
     """First occurrence of each CARRIED_CASE_CONTROL command between CEND and BEGIN BULK."""
     lines = Path(deck).read_text(errors="replace").splitlines()
@@ -119,6 +152,59 @@ def carried_case_control(deck: Path) -> list[str]:
             seen.add(m.group(1))
             out.append(line.strip())
     return out
+
+
+# ---------------------------------------------------- element quality limits
+# Simcenter's own default element-geometry limits: GEOMCHECK (qrg ~8150, remark 2).
+# Nastran applies these on every run and prints INFORM messages for elements beyond
+# them (it does not stop unless MSGTYPE=FATAL; solid aspect-ratio checks are FATAL by
+# default). Only the tests whose definition matches what pyNastran computes are
+# compared here: interior angles and edge aspect ratio. Nastran's skew, taper and warp
+# are defined differently from pyNastran's skew/taper/warp-angle metrics, so those are
+# reported as statistics only. (FEMAP's Tools > Check > Distortion uses its own,
+# user-set tolerances; the tool doesn't try to mirror them.)
+GEOMCHECK_LIMITS = [
+    # (element types, pyNastran metric, '<' or '>', limit, Nastran keyword)
+    ({"CQUAD4", "CQUADR"}, "min_interior_angle", "<", 30.0, "Q4_IAMIN"),
+    ({"CQUAD4", "CQUADR"}, "max_interior_angle", ">", 150.0, "Q4_IAMAX"),
+    ({"CQUAD4"}, "max_aspect_ratio", ">", 100.0, "QAD_AR"),
+    ({"CTRIA3", "CTRIAR"}, "max_interior_angle", ">", 160.0, "T3_IAMAX"),
+    ({"CQUAD8"}, "min_interior_angle", "<", 30.0, "Q8_IAMIN"),
+    ({"CQUAD8"}, "max_interior_angle", ">", 150.0, "Q8_IAMAX"),
+    ({"CQUAD8"}, "max_aspect_ratio", ">", 100.0, "Q8_AR"),
+    ({"CTRIA6"}, "min_interior_angle", "<", 10.0, "TA6_IAMN"),
+    ({"CTRIA6"}, "max_interior_angle", ">", 160.0, "TA6_IAMX"),
+]
+
+
+def geomcheck_exceedances(model: BDF, quality: dict, log: Callable[[str], None] = print) -> list:
+    """Rows [keyword, element types, limit, n checked, n beyond, worst 10 element IDs]."""
+    try:
+        from pyNastran.bdf.mesh_utils.delete_bad_elements import element_quality
+        q = element_quality(model)
+    except Exception as exc:
+        log(f"GEOMCHECK comparison skipped: {exc}")
+        return []
+    eids = np.array(sorted(model.elements), dtype=int)
+    etypes = np.array([model.elements[e].type for e in eids])
+    rows = []
+    for types, metric, op, limit, kw in GEOMCHECK_LIMITS:
+        if metric not in q:
+            continue
+        mask = np.isin(etypes, list(types))
+        if not mask.any():
+            continue
+        v = np.asarray(q[metric], dtype=float)[mask]
+        if "angle" in metric:
+            v = np.degrees(v)
+        ok = ~np.isnan(v)
+        bad = (v < limit) if op == "<" else (v > limit)
+        bad &= ok
+        order = np.argsort(v[bad]) if op == "<" else np.argsort(v[bad])[::-1]
+        worst = eids[mask][bad][order][:10].tolist()
+        rows.append([kw, "/".join(sorted(types)), f"{op} {limit:g}", int(ok.sum()),
+                     int(bad.sum()), ", ".join(str(e) for e in worst) or "-"])
+    return rows
 
 
 # --------------------------------------------------------------------- summary
@@ -171,10 +257,12 @@ def model_info(model: BDF, deck: Path, quality: bool = True,
         bbox_min=bmin.tolist(), bbox_max=bmax.tolist(),
         size=float(np.linalg.norm(bmax - bmin)),
         carried_case_control=carried_case_control(deck), params=params,
+        trace=read_trace(deck),
         wtmass=float(params.get("WTMASS", 1.0)), e_max=e_max(model),
     )
     if quality:
         info.quality = element_quality_summary(model, log)
+        info.geomcheck = geomcheck_exceedances(model, info.quality, log)
     big = [eid for eid in model.rigid_elements if eid > LAGRAN_MAX_ID]
     if big:
         info.notes.append(f"{len(big)} rigid element IDs exceed 1e8; RIGID=LAGRAN (thermal check) "
@@ -249,14 +337,14 @@ def _rotation_grids(model: BDF) -> set[int]:
 
 
 def _spc_grids(model: BDF) -> set[int]:
-    grids = set()
-    for spc_list in model.spcs.values():
-        for spc in spc_list:
-            if spc.type == "SPC1":
-                grids.update(spc.node_ids)
-            elif spc.type == "SPC":
-                grids.update(spc.node_ids)
-    return grids
+    """Grids with a PERMANENT single-point constraint (GRID card PS field).
+
+    SPC/SPC1 cards in the model's own sets don't count: the check decks select only
+    their own SPC set, so those cards are inactive. (The user's model has its mount grid
+    199999 in SPC sets 2 and 3; refusing it for that would be wrong.) The PS field is
+    always active, and an SPC1 123456 on top of it is harmless, but a grid with PS
+    rotations fixed couldn't carry the unit-rotation SPCD, so it's refused."""
+    return {nid for nid, node in model.nodes.items() if node.ps not in ("", None, 0, "0")}
 
 
 def _mount_problems(model: BDF, nid: int, rot: set, dep: dict, spc: set) -> list[str]:
@@ -270,7 +358,7 @@ def _mount_problems(model: BDF, nid: int, rot: set, dep: dict, spc: set) -> list
         p.append(f"grid {nid} is a dependent (m-set) grid of a rigid element/MPC "
                  f"(components {dep[nid]}); Nastran cannot SPC it")
     if nid in spc:
-        p.append(f"grid {nid} already has an SPC in the model")
+        p.append(f"grid {nid} has a permanent constraint (PS={model.nodes[nid].ps}) on its GRID card")
     if model.nodes[nid].cd not in (0, None):
         p.append(f"grid {nid} has output coordinate system CD={model.nodes[nid].cd}; "
                  "the mount must use CD=0 so SPCD directions are basic X/Y/Z")

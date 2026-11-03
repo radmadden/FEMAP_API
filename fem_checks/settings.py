@@ -71,8 +71,8 @@ class MassTargets:
 @dataclass
 class Thresholds:
     """Pass/fail limits. Defaults are the decisions locked in plan-fem-checks.md."""
-    rbm_ratio: float = 1e-4          # max rigid-body freq / first elastic freq
-    rbm_abs_hz: float = 1e-4         # FEMCI absolute limit (femci ~2095), INFO only
+    rbm_ratio: float = 1e-4          # max rigid-body freq / first elastic freq (FEMCI's
+                                     # absolute 1e-4 Hz is not used: user decision, plan #1)
     gravity_rel: float = 1e-4        # OLOAD vs SPCFORCE, and OLOAD vs mass*g
     ud_disp_rel: float = 1e-3        # unit-disp field vs rigid-body motion
     thermal_disp_rel: float = 1e-3   # thermal field vs alpha*dT*(r - r_mount)
@@ -89,7 +89,10 @@ class Settings:
     output_dir: str = ""              # "" -> <deck folder>/<deck stem>_fem_checks
     units: str = "in-lbf-s"
     mount_grid: int = 0               # 0 -> auto-pick the qualifying grid nearest the CG
-    gravity_spc_set: int = 0          # 0 -> use the kinematic mount for gravity + constrained modes
+    # The model's REAL boundary-condition SPC set (an SPC/SPC1/SPCADD set ID in the deck).
+    # Required for the constrained-modes check; optional for gravity (see gravity_mount).
+    real_spc_set: int = 0
+    gravity_mount: str = "kinematic"  # "kinematic" (single-grid 123456 mount) or "real"
     checks: dict = field(default_factory=lambda: {
         "model_summary": True, "freefree": True, "constrained_modes": True,
         "unit_disp": True, "gravity": True, "thermal": False, "mass_props": True})
@@ -139,6 +142,12 @@ class Settings:
                             "for the rigid-body frequency ratio check.")
         if self.n_modes_constrained < 1:
             problems.append("Constrained mode count must be at least 1.")
+        if self.checks.get("constrained_modes") and not self.real_spc_set:
+            problems.append("Constrained modes needs the model's real constraint SPC set ID.")
+        if self.gravity_mount not in ("kinematic", "real"):
+            problems.append("Gravity mount must be 'kinematic' or 'real'.")
+        if self.checks.get("gravity") and self.gravity_mount == "real" and not self.real_spc_set:
+            problems.append("Gravity on the real mount needs the real constraint SPC set ID.")
         if self.alpha <= 0:
             problems.append("Thermal CTE (alpha) must be positive.")
         if self.targets.mass_unit not in ("model", "lbm", "kg"):
@@ -161,8 +170,14 @@ class Settings:
     @classmethod
     def from_dict(cls, d: dict) -> "Settings":
         d = dict(d)
+        # Older settings files: gravity_spc_set (one field for both uses) -> new fields.
+        old = d.pop("gravity_spc_set", 0)
+        if old and not d.get("real_spc_set"):
+            d["real_spc_set"], d["gravity_mount"] = old, "real"
         targets = MassTargets(**d.pop("targets", {}))
-        thresholds = Thresholds(**d.pop("thresholds", {}))
+        th = dict(d.pop("thresholds", {}))
+        th.pop("rbm_abs_hz", None)
+        thresholds = Thresholds(**th)
         s = cls(**d)
         s.targets, s.thresholds = targets, thresholds
         # Fill any checks missing from an older JSON with the defaults.

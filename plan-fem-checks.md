@@ -34,6 +34,41 @@ Research: `research-fem-checks.md`. Reference docs: `FEMCI-The-Book.pdf` (femci 
   GUI, settings saved to JSON, same JSON usable from the command line.
 - **Python:** user can `pip install pyNastran` (and reportlab) on the work PC.
 
+## Decisions locked from the plan review (`>>` comments, 2026-11-04)
+
+- **#1:** drop the Book's absolute 1e-4 Hz entirely; only the f6/f7 separation is judged.
+  The INFO line is removed from the code and report.
+- **Element quality limits** (question at step 2). Answered: Simcenter has default limits,
+  `GEOMCHECK` (qrg ~8150, remark 2), e.g. CQUAD4 interior angles 30-150°, skew 30°, taper 0.5,
+  warp factor 0.05, edge aspect ratio 100; CTRIA3 max angle 160°. Nastran applies them on
+  every run and only prints INFORM messages (solid aspect-ratio checks are FATAL by default).
+  FEMAP's *Tools > Check > Distortion* uses its own user-set tolerances. Implemented:
+  - the report counts elements beyond the Simcenter defaults for the tests whose
+    definition matches pyNastran's metrics (interior angles, aspect ratio), and lists the
+    worst 10 IDs;
+  - skew, taper and warp are defined differently, so they're reported as statistics only;
+  - quality is INFO and never fails the run.
+- **Constrained modes ask for the real constraint set:** new required field
+  `real_spc_set`, checked against the deck. Gravity has its own choice, `gravity_mount` =
+  kinematic (default) or real.
+- **"SPC1 node chosen per the mount grid":** it already is. The card is
+  `SPC1, <set ID>, 123456, <mount grid>`; 9000001 is only the set ID the case control
+  selects. The constrained grid is always the chosen mount grid. Step 5 and the decks.py
+  docstring now say so explicitly.
+- **Original model title in every check deck:**
+  - TITLE and SUBTITLE are copied from the model deck, and the check name moved to LABEL;
+  - a `$` header names the source deck, the FEMAP model file and its export date;
+  - FEMAP's `INIT MASTER(S)` / `NASTRAN SYSTEM(...)` statements are carried too;
+  - the report header repeats all of it.
+- **Jupyter notebook design document:** `fem_checks/fem_checks_design.ipynb`. It walks
+  every step with markdown (what and why, criteria with equations, source refs) and
+  executable cells that call the package on the repo's sample model and outputs. Outputs
+  are saved in the notebook so it reads without running.
+- **Found while testing on the full deck:** the mount rule refused grids that appear in
+  any model SPC set. That was wrong, because the check decks select only their own set,
+  and it refused the user's own mount 199999. The rule is now "no permanent constraint
+  (GRID PS field)".
+
 ## Decisions to confirm (all 8 approved by the user 2026-11-04; #8 = model deck, pending upload)
 
 1. **Rigid-body mode criterion.** Your sample model's rigid-body modes are 1.0e-4 to
@@ -148,10 +183,10 @@ GUI fields, saved to `fem_checks.json` next to the deck:
      - `PARAM,GRDPNT,0`, as in the user's decks. CG and I(S) are about the CG either
        way; the mount is the WEIGHTCHECK/GROUNDCHECK reference grid.
      - EIGRL with ND = N, `DISP(PLOT)=ALL`, `PARAM,AUTOSPC` per option.
-   - `02_constrained_modes.dat`: SOL 103, SPC = gravity set (or mount),
+   - `02_constrained_modes.dat`: SOL 103, SPC = **the real constraint set** (required field),
      `MEFFMASS(PRINT,PLOT,FRACSUM,SUMMARY)=YES`, EIGRL ND = N.
      >>this will have to ask for the real constraint set
-   - `03_unit_disp.dat`: SOL 101, `SPC1 9000001 123456 m`.
+   - `03_unit_disp.dat`: SOL 101, `SPC1 <base+1> 123456 <mount grid>` (set ID reserved, grid = mount).
      - 6 subcases, `LOAD` → `SPCD` 1.0 in DOF 1..6.
      - Output: `DISP(PLOT)`, `SPCF(PLOT)`, `OLOAD(PLOT)`, `FORCE(PLOT,CORNER)`.
      >>the spc1 node needs to be chosen per the mount grid, not hard coded to 9000001
@@ -271,18 +306,24 @@ Folder `<deck>_fem_checks\`:
 
 ## Status
 
-**Implemented, not yet run in Nastran** (2026-11-04). Code: `fem_checks/` (Python
-package). Tests: `python -m pytest fem_checks/tests` (14 pass). They cover:
+**Implemented, not yet run in Nastran** (updated 2026-11-04 after the plan review).
+Code: `fem_checks/` (Python package). Design document: `fem_checks/fem_checks_design.ipynb`.
+Tests: `python -m pytest fem_checks/tests` (15 pass). They cover:
 - the .f06 parsers against the three real sample .f06s;
-- the check logic on those files (free-free PASS with ratio 3.2e-6; gravity PASS, and FAIL
-  with a 1% mass error; mass properties with both product conventions);
-- model reading with a FEMAP checksum, mount auto-pick and rejections, bulk and thermal
-  writing, and deck contents, on a small generated model;
-- an end-to-end run with a stand-in Nastran that copies the sample outputs, which built the
-  PDF report.
+- the check logic on those files;
+- model reading, the mount rules and deck contents, on a small generated model;
+- **the user's full deck** (`1G_unit_load_check-0000.dat`): traceability fields, the
+  mount rule, and a lossless bulk rewrite (all 41,538 cards field-identical after the
+  round trip).
 
-Not yet exercised: a real Nastran run of the generated decks, the displacement-field theory
-checks on a real model (needs the full model deck), and the GUI (no display here).
+Verified on the full deck with the sample OP2s:
+- the unit-displacement field matches rigid-body motion to ≤ 4e-8 in all 6 subcases, over
+  24,851 grids (7,302 checked in rotation);
+- mount reactions are ≤ 2.8e-4;
+- gravity OLOAD/SPCFORCE balance to 1e-10.
+
+Not yet exercised: a real Nastran run of the generated decks, the thermal and
+constrained-modes checks (no sample outputs), and the GUI (no display here).
 
 **How to run** (Windows, from the repo folder):
 ```

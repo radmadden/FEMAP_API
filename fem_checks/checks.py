@@ -87,7 +87,6 @@ def check_freefree(f06: Optional[F06], th, autospc: bool) -> CheckResult:
     f7 = hz[6]
     ratio = f_rbm / f7 if f7 > 0 else float("inf")
     ratio_ok = ratio <= th.rbm_ratio
-    n_over_abs = sum(1 for f in hz[:6] if f > th.rbm_abs_hz)
 
     gc = f06.groundcheck
     gc_ok = bool(gc) and all(s.all_pass for s in gc)
@@ -113,8 +112,8 @@ def check_freefree(f06: Optional[F06], th, autospc: bool) -> CheckResult:
 
     details = [
         f"Criterion: max(f1..f6) / f7 <= {th.rbm_ratio:.0e} (decision #1). Result {ratio:.2e}.",
-        f"FEMCI absolute limit {th.rbm_abs_hz:.0e} Hz (femci ~2095, INFO only): "
-        f"{n_over_abs} of 6 rigid-body modes above it.",
+        "FEMCI's absolute 1e-4 Hz limit (femci ~2095) is deliberately not applied: it doesn't "
+        "scale with model size or units, and the 6th/7th separation is what shows grounding.",
         "GROUNDCHECK passes only if every requested set (G, N"
         + (", N+AUTOSPC" if autospc else "") + ", F, A) prints PASS in all 6 directions.",
         f"Free-free run used PARAM,AUTOSPC,{'YES' if autospc else 'NO'}. FEMCI (~2127): AUTOSPC "
@@ -135,7 +134,7 @@ def check_freefree(f06: Optional[F06], th, autospc: bool) -> CheckResult:
               [[s.set_name, s.matrix, _e(s.limit)] + [_e(x) for x in s.strain_energy]
                + ["PASS" if s.all_pass else "FAIL"] for s in gc]),
     ]
-    data = dict(freq_hz=hz, ratio=ratio, f_rbm_max=f_rbm, f7=f7, n_over_abs=n_over_abs,
+    data = dict(freq_hz=hz, ratio=ratio, f_rbm_max=f_rbm, f7=f7,
                 groundcheck={s.set_name: dict(limit=s.limit, se=s.strain_energy, passed=s.passed)
                              for s in gc},
                 weightcheck_change={s: c for s, c in wc_changes})
@@ -499,7 +498,8 @@ def check_mass_props(block: Optional[MassBlock], targets, units_name: str, units
 
 
 # ============================================================== model summary
-def check_model_summary(info, mount, base: int, gravity_spc_label: str) -> CheckResult:
+def check_model_summary(info, mount, base: int, gravity_spc_label: str,
+                        real_spc_label: str) -> CheckResult:
     key, title = "model_summary", "Model summary"
     rows = [[k, v] for k, v in info.element_counts.items()]
     q_rows = [[name, s["count"], f"{s['min']:.4g}", f"{s['mean']:.4g}", f"{s['p95']:.4g}", f"{s['max']:.4g}",
@@ -512,15 +512,25 @@ def check_model_summary(info, mount, base: int, gravity_spc_label: str) -> Check
         f"Mount grid {mount.grid} ({'auto-picked nearest the CG' if mount.auto else 'user-entered'}) at "
         f"{np.round(mount.xyz, 4).tolist()}, {mount.distance_to_cg:.4g} from the pyNastran CG "
         f"({100 * mount.distance_fraction:.1f}% of L).",
-        f"Gravity / constrained-modes mount: {gravity_spc_label}.",
+        f"Gravity mount: {gravity_spc_label}. Constrained modes: {real_spc_label}.",
+        "Traceability: title '" + info.trace.get("title", "-") + "', subtitle '"
+        + info.trace.get("subtitle", "-") + "', FEMAP model " + info.trace.get("femap_model", "-")
+        + " (exported " + info.trace.get("femap_date", "-") + ").",
+        "NASTRAN statements carried into every check deck: "
+        + (", ".join(info.trace.get("nastran_statements", [])) or "none") + ".",
         f"Check-deck IDs reserved from {base} (no collision with model set IDs).",
         "Case control carried into every check deck: "
         + (", ".join(info.carried_case_control) if info.carried_case_control else "none") + ".",
         "Model PARAMs: " + ", ".join(f"{k}={v}" for k, v in info.params.items()) + ".",
     ] + info.notes
     tables = [Table("Element counts", ["Type", "Count"], rows)]
+    if info.geomcheck:
+        tables.append(Table("Elements beyond Simcenter's default GEOMCHECK limits (qrg ~8150; INFO, "
+                            "Nastran itself only prints messages for these)",
+                            ["Nastran test", "Types", "Limit", "Checked", "Beyond", "Worst elements"],
+                            info.geomcheck))
     if q_rows:
-        tables.append(Table("Element quality (shells and solids; angles in degrees)",
+        tables.append(Table("Element quality statistics (pyNastran; shells and solids; angles in degrees)",
                             ["Metric", "N", "Min", "Mean", "95th pct", "Max", "Worst elements"], q_rows))
     return CheckResult(key, title, "INFO", f"{info.n_grids} grids, {info.n_elements} elements",
                        details, tables, dict(element_counts=info.element_counts,

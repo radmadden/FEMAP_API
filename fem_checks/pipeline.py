@@ -99,12 +99,15 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
         f"{mount.distance_to_cg:.4g} from CG ({100 * mount.distance_fraction:.1f}% of model size)")
     base = M.reserved_base(model)
     ids = D.DeckIds(base)
-    if s.gravity_spc_set:
-        if not M.spc_set_exists(model, s.gravity_spc_set):
-            raise ValueError(f"SPC set {s.gravity_spc_set} is not in the model deck.")
-        gravity_spc, spc_label = s.gravity_spc_set, f"model SPC set {s.gravity_spc_set}"
+    kin_label = f"kinematic mount (grid {mount.grid}, 123456)"
+    real_label = f"model SPC set {s.real_spc_set}"
+    if s.real_spc_set and not M.spc_set_exists(model, s.real_spc_set):
+        raise ValueError(f"Real constraint SPC set {s.real_spc_set} is not in the model deck "
+                         f"(sets found: {sorted(set(model.spcs) | set(model.spcadds))}).")
+    if s.gravity_mount == "real":
+        gravity_spc, spc_label = s.real_spc_set, real_label
     else:
-        gravity_spc, spc_label = ids.mount_spc, f"kinematic mount (grid {mount.grid}, 123456)"
+        gravity_spc, spc_label = ids.mount_spc, kin_label
 
     # STEP 4: bulk data -------------------------------------------------------
     which = [k for k in D.DECK_NAMES if s.checks.get(k)]
@@ -123,9 +126,9 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
             say("  thermal: " + line)
 
     # STEP 5: decks ---------------------------------------------------------------
-    paths = D.write_decks(out, which, ids, mount.grid, gravity_spc, unit["g"],
+    paths = D.write_decks(out, which, ids, mount.grid, gravity_spc, s.real_spc_set, unit["g"],
                           s.n_modes_freefree, s.n_modes_constrained, s.autospc_freefree,
-                          info.carried_case_control)
+                          info.carried_case_control, info.trace)
     say("Wrote decks: " + ", ".join(p.name for p in paths.values()))
 
     # STEP 6: run Nastran -------------------------------------------------------
@@ -152,11 +155,11 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
     th = s.thresholds
     results = []
     if s.checks.get("model_summary"):
-        results.append(C.check_model_summary(info, mount, base, spc_label))
+        results.append(C.check_model_summary(info, mount, base, spc_label, real_label))
     if s.checks.get("freefree"):
         results.append(C.check_freefree(f06s.get("freefree"), th, s.autospc_freefree))
     if s.checks.get("constrained_modes"):
-        results.append(C.check_constrained(f06s.get("constrained_modes"), spc_label))
+        results.append(C.check_constrained(f06s.get("constrained_modes"), real_label))
     if s.checks.get("unit_disp"):
         results.append(_unit_disp(runs.get("unit_disp"), f06s.get("unit_disp"), model, mount, s, unit, say))
     if s.checks.get("gravity"):
@@ -206,7 +209,10 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
         "Units": f"{s.units} (g = {unit['g']:g})",
         "Mount grid": f"{mount.grid} ({'auto' if mount.auto else 'user'}), "
                       f"{mount.distance_to_cg:.4g} from CG",
-        "Gravity / constrained mount": spc_label,
+        "Model title / subtitle": f"{info.trace.get('title', '-')} / {info.trace.get('subtitle', '-')}",
+        "FEMAP model": info.trace.get("femap_model", "-"),
+        "Gravity mount": spc_label,
+        "Constrained-modes SPC": real_label if s.real_spc_set else "-",
         "Output folder": str(out),
     }
     summary.results_json = out / "results.json"

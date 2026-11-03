@@ -37,8 +37,10 @@ def test_mount_autopick_and_rejections(deck, model):
     assert mount.grid == 201  # RBE2 independent grid nearest the CG
     with pytest.raises(ValueError, match="dependent"):
         M.choose_mount(model, info, 7)      # RBE2 dependent grid
-    with pytest.raises(ValueError, match="already has an SPC"):
-        M.choose_mount(model, info, 1)      # in SPC1 set 1
+    assert M.choose_mount(model, info, 1).grid == 1   # in model SPC set 1: allowed
+    model.nodes[13].ps = "456"
+    with pytest.raises(ValueError, match="permanent constraint"):
+        M.choose_mount(model, info, 13)     # GRID PS field is always active
     with pytest.raises(ValueError, match="rotational stiffness"):
         M.choose_mount(model, info, 107)    # CHEXA-only grid
 
@@ -63,11 +65,19 @@ def test_reserved_ids_avoid_collisions(model):
 
 def test_decks(tmp_path):
     ids = D.DeckIds(9_000_000)
-    paths = D.write_decks(tmp_path, list(D.DECK_NAMES), ids, 201, ids.mount_spc, 386.0886,
-                          10, 10, True, ["NSM = 50"])
+    trace = {"title": "1G UNIT LOAD CHECK", "subtitle": "BD IRAD V2", "deck": "x.dat",
+             "femap_model": "D:\\IRAD\\BD_IRAD_FEMv4.modfem",
+             "nastran_statements": ["NASTRAN SYSTEM(442)=-1,SYSTEM(319)=1"]}
+    paths = D.write_decks(tmp_path, list(D.DECK_NAMES), ids, 201, ids.mount_spc, 2, 386.0886,
+                          10, 10, True, ["NSM = 50"], trace)
     ff = paths["freefree"].read_text()
     assert "GROUNDCHECK(PRINT,SET=(G,N,N+AUTOSPC,F,A),GRID=201,DATAREC=YES)=YES" in ff
     assert "SPC =" not in ff and "NSM = 50" in ff
+    assert "TITLE = 1G UNIT LOAD CHECK" in ff and "SUBTITLE = BD IRAD V2" in ff
+    assert "BD_IRAD_FEMv4.modfem" in ff
+    assert ff.index("NASTRAN SYSTEM(442)") < ff.index("SOL 103")
+    assert "SPC = 2" in paths["constrained_modes"].read_text()
+    assert "SPC1" not in paths["constrained_modes"].read_text()
     ud = paths["unit_disp"].read_text()
     assert "SPC1,9000001,123456,201" in ud and "SPCD,9000016,201,6,1.0" in ud
     th = paths["thermal"].read_text()
@@ -103,7 +113,7 @@ def test_freefree_check_on_sample():
     res = C.check_freefree(parse_f06(REPO / "freefree_check-0000.f06"), Thresholds(), True)
     assert res.status == "PASS"
     assert res.data["ratio"] == pytest.approx(4.286750e-04 / 1.330038e02)
-    assert res.data["n_over_abs"] == 4   # FEMCI's 1e-4 Hz would fail 4 of 6
+    assert "n_over_abs" not in res.data   # Book absolute limit dropped (plan decision #1)
     strict = Thresholds(rbm_ratio=1e-7)
     assert C.check_freefree(parse_f06(REPO / "freefree_check-0000.f06"), strict, True).status == "FAIL"
 
@@ -143,3 +153,29 @@ def test_settings_roundtrip(tmp_path):
     assert s2.units == "mm-t-s" and s2.targets.mass == 2.0
     assert s2.force_tol() == pytest.approx(0.44482, rel=1e-4)
     assert "Model deck not found" in " ".join(s2.validate(need_nastran=False))
+
+
+REAL_DECK = REPO / "1G_unit_load_check-0000.dat"
+
+
+@pytest.mark.skipif(not REAL_DECK.exists(), reason="user's full model deck not in repo")
+def test_real_deck_trace_and_roundtrip(tmp_path):
+    """The user's full model: traceability fields, mount checks, and a lossless bulk rewrite."""
+    tr = M.read_trace(REAL_DECK)
+    assert tr["title"] == "1G UNIT LOAD CHECK" and tr["subtitle"] == "BD IRAD V2"
+    assert tr["femap_model"].endswith("BD_IRAD_FEMv4.modfem")
+    assert tr["nastran_statements"] == ["INIT MASTER(S)", "NASTRAN SYSTEM(442)=-1,SYSTEM(319)=1"]
+    model = M.read_model(REAL_DECK, tmp_path)
+    info = M.model_info(model, REAL_DECK, quality=False)
+    assert info.n_grids == 24851
+    assert M.choose_mount(model, info, 199999).grid == 199999   # in model SPC sets 2/3: allowed
+    (tmp_path / "bulk.bdf").write_text(M.bulk_text(model))
+    (tmp_path / "rt.dat").write_text(f"SOL 101\nCEND\nBEGIN BULK\nINCLUDE '{tmp_path / 'bulk.bdf'}'\nENDDATA\n")
+    from pyNastran.bdf.bdf import BDF
+    back = BDF(debug=False, mode="nx")
+    back.read_bdf(str(tmp_path / "rt.dat"), xref=False)
+    for name in ("nodes", "elements", "properties", "materials", "rigid_elements", "masses", "coords"):
+        a, b = getattr(model, name), getattr(back, name)
+        assert set(a) == set(b), name
+        for k in a:
+            assert a[k].repr_fields() == b[k].repr_fields(), (name, k)
