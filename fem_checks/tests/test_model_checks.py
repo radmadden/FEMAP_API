@@ -219,3 +219,18 @@ def test_setup_find_nastran(tmp_path):
         (d / "nastran.exe").write_text("")
     found = find_nastran([str(tmp_path / "FEMAP*" / "NASTRAN" / "bin" / "nastran*.exe")])
     assert "2512" in found[0]   # newest first
+
+
+def test_long_case_control_lines_do_not_stop_bulk_write(tmp_path):
+    """First user run: 'AssertionError: len(msg)=77' from pyNastran re-writing a long
+    FEMAP case-control line. bulk_text must not write case control at all."""
+    from fem_checks.tests.make_test_model import DECK, _plate
+    g, q = _plate()
+    long_cc = ("  MEFFMASS(PLOT,PRINT,GRID=0,PARTFAC,MEFFM,MEFFW,FRACSUM,SUMMARY) = YES\n"
+               "  TITLE = A VERY LONG TITLE THAT GOES ON AND ON FOR THE TRACEABILITY OF IT ALL\n")
+    d = tmp_path / "long.dat"
+    d.write_text(DECK.format(grids=g, quads=q).replace("  ECHO = NONE\n", "  ECHO = NONE\n" + long_cc))
+    m = M.read_model(d, tmp_path / "work")
+    text = M.bulk_text(m)
+    assert "GRID" in text and "MEFFMASS" not in text
+    assert m.case_control_deck is not None   # restored after the write

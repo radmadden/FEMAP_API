@@ -398,12 +398,19 @@ def bulk_text(model: BDF) -> str:
     format, so node coordinates and properties keep their precision. The PARAMs in
     PARAMS_SET_BY_CHECKS are removed (each check deck sets its own)."""
     saved = {k: model.params.pop(k) for k in PARAMS_SET_BY_CHECKS if k in model.params}
+    # Don't let pyNastran re-write the FEMAP case control: we discard it anyway, and
+    # pyNastran's writer asserts on case-control lines longer than ~68 characters
+    # (bdf/subcase.py), which real FEMAP decks have (first user run stopped with
+    # "AssertionError: len(msg)=77"). Detach it for the write, then put it back.
+    saved_cc = model.case_control_deck
+    model.case_control_deck = None
     try:
         buf = io.StringIO()
         model.write_bdf(buf, size=16, is_double=False, enddata=False, close=False)
         text = buf.getvalue()
     finally:
         model.params.update(saved)
+        model.case_control_deck = saved_cc
     # write_bdf also writes executive and case control; keep only what follows BEGIN BULK.
     lines = text.splitlines()
     for i, line in enumerate(lines):
