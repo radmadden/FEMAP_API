@@ -19,6 +19,42 @@ One macro that sets up, runs and reports the standard FEM model checks:
 
 "Set up and go," though it may need more than one analysis run.
 
+## What FEMCI "The Book" says (confirmed in FEMCI-The-Book.pdf)
+
+Line refs are into `pdftotext -layout FEMCI-The-Book.pdf femci.txt` (`femci ~line`).
+Section "Validity Checks" (femci ~1880). The Book lists **four** mathematical checks: your
+ground check lives inside the free-free check, and OLOAD/SPCFORCE inside the gravity check.
+The first three are for every statics/dynamics model; the thermal check is only for
+models used in thermal distortion analysis (femci ~1891).
+
+| Check | Constraint (per Book) | Pass criteria (per Book) |
+|---|---|---|
+| Unit enforced disp/rotation, SOL 101, 6 subcases (femci ~1953) | `SPC1 123456` on **one grid**, and `SPCD` 1.0 on that same grid in each DOF. That grid has no other SPCs and should be near the CG (~1966) | Translation subcases: 1.0 in the input DOF, 0.0 in the other 5. Rotation subcases: 1.0 rad about the input axis, other two rotations 0 (translations nonzero, rigid-body). Element forces and grid-point force balance ≈ 0, max **0.1 lb / 1.0 in-lb** (~1965) |
+| Free-free modes + GROUNDCHECK, SOL 103 (femci ~2082) | Remove all external SPCs. The `SPC=100` note is only for normal (drilling) plate rotations, not a base mount | ≥ 6 rigid-body modes at **≤ 1.0E-04 Hz** (~2095). `GROUNDCHECK(SET=ALL)=YES` prints G/N/F/A-set strain energy with PASS/FAIL against a limit (default: largest K term / 1e10). A G-set error propagates to later sets; `PARAM,AUTOSPC,YES` can falsely fail the A-set (~2127) |
+| Unit gravity X/Y/Z, SOL 101, 3 subcases (femci ~2231) | **Real mount** ("structure held at base") | SPC forces only at mount points. Their sum equals total weight in the load direction, ~0 in the others. No large displacements. `PARAM,GRDPNT,0` for the weight summary (~2270) |
+| Unit temperature increase, SOL 101 (femci ~2276) | **Kinematic mount**: "one GRID point constrained in all 6 DOFs" (~2289, ~2297) | Displacements match theory, α·L·ΔT. Grid-point force balance is zero everywhere, and SPC forces appear only at the mount. Setup: `TEMPD` = Tref + 1 (~2315). **All MAT cards set to the same CTE and same Tref** (~2319). RBE2s not joined by coincident nodes should not be used (~2318) |
+
+Implications:
+- **Thermal soak is kinematically mounted, not unconstrained** (resolves Q1a). Mechanically
+  a single-grid 123456 mount is still free expansion, so SPC forces should be ~0.
+- The Book compares against the theoretical α·L·ΔT using **THDEF**, a legacy program on
+  a GSFC VAX ("merger", ~2285) that we don't have. With a uniform α and a 123456 mount at
+  grid m, the theory is just u = α·ΔT·(r − r_m) in basic coordinates. That's easy to
+  compute in Python per grid, and replaces THDEF.
+- The thermal check needs a **modified deck**, with every CTE and Tref overwritten. The
+  tool must do that to a copy of the deck, never to the model.
+- Same grid for the unit-enforced mount, the thermal kinematic mount and the
+  `GROUNDCHECK(GRID=...)` reference: one near the CG (from GPWG).
+- The Book's units are in-lb (`GRAV 386.4` with `PARAM,WTMASS,0.00259`, ~2272). The tool
+  must pick g and the force/moment thresholds to match the model's units.
+- The Book doesn't mention OLOAD explicitly. Comparing the OLOAD resultant against the
+  SPCFORCE resultant and the GPWG weight is a stricter version of its "sum = total
+  weight" check, so keep all three.
+- Its decks reference SOL 24 / MSC; use SOL 101 / 103 for both MSC and Simcenter.
+- Extra checks the Book lists for pre/post-processing (free edges, coincident
+  nodes/elements, bar orientation, plate distortion/normals, mass) start at femci ~1897.
+  They're out of scope for now (see Q9).
+
 ## Key API findings (confirmed in api.pdf)
 
 _TBD — research pass. Things to find:_
@@ -70,7 +106,8 @@ _TBD — research pass. Things to find:_
    +/- direction cases needed?
    >> yes, gravity check. (+/- and combined cases still open.)
 1a. Thermal soak constraint: user thinks it should be unconstrained, wants it checked
-   against the I-book (not in this repo; need the user to supply it or the relevant page).
+   against the I-book.
+   **Resolved by FEMCI (~2289, ~2297): kinematic mount, one grid 123456.** See table above.
    Note: a truly unconstrained SOL 101 is singular and Nastran will fail, unless you use
    inertia relief (`PARAM,INREL,-2`). In practice "unconstrained" means a statically
    determinate mount whose SPC forces come out ~0. That's mechanically identical to free
@@ -78,9 +115,15 @@ _TBD — research pass. Things to find:_
 2. Pass/fail criteria: what thresholds for rigid-body mode frequency (e.g. < 1e-3 Hz?),
    ground-check strain energy, OLOAD vs SPCFORCE % difference, thermal soak max stress?
    Or is the report data-only with no pass/fail?
+   Book defaults: RBM ≤ 1e-4 Hz; GROUNDCHECK's own PASS/FAIL; unit-enforced forces
+   ≤ 0.1 lb / 1.0 in-lb; gravity reactions = GPWG weight; thermal displacements = α·L·ΔT.
+   The Book gives no % tolerance for the gravity or thermal checks, so those still need one.
 3. Kinematic mount for unit displacement and thermal soak: user picks one node (123456),
    or a 3-2-1 set, or the macro picks the node nearest the CG?
+   Book: one grid, 123456, near the CG. Open: user-picked, or auto-picked as the grid
+   nearest the GPWG CG?
 4. Gravity check: run against the model's real constraints, or the kinematic mount?
+   Book: real mount. The tool needs to know which SPC set is the real one.
 5. Report format: text file, CSV, FEMAP message window, or something richer (HTML /
    Word)? Should it include plots/screenshots?
 6. Keep the generated `CHK_*` loads/constraints/analysis sets after running, or clean up?
