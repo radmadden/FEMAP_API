@@ -398,26 +398,30 @@ def bulk_text(model: BDF) -> str:
     format, so node coordinates and properties keep their precision. The PARAMs in
     PARAMS_SET_BY_CHECKS are removed (each check deck sets its own)."""
     saved = {k: model.params.pop(k) for k in PARAMS_SET_BY_CHECKS if k in model.params}
-    # Don't let pyNastran re-write the FEMAP case control: we discard it anyway, and
-    # pyNastran's writer asserts on case-control lines longer than ~68 characters
-    # (bdf/subcase.py), which real FEMAP decks have (first user run stopped with
-    # "AssertionError: len(msg)=77"). Detach it for the write, then put it back.
-    saved_cc = model.case_control_deck
-    model.case_control_deck = None
+    # Write in pyNastran's "punch" mode: bulk data only, no executive or case control
+    # (write_mesh.py _write_header skips both when punch=True). We discard those
+    # sections anyway, and pyNastran's case-control writer asserts on lines longer than
+    # ~68 characters (bdf/subcase.py), which real FEMAP decks have: the first user run
+    # stopped with "AssertionError: len(msg)=77". The flag is restored afterwards.
+    saved_punch = model.punch
+    model.punch = True
     try:
         buf = io.StringIO()
         model.write_bdf(buf, size=16, is_double=False, enddata=False, close=False)
         text = buf.getvalue()
     finally:
         model.params.update(saved)
-        model.case_control_deck = saved_cc
-    # write_bdf also writes executive and case control; keep only what follows BEGIN BULK.
+        model.punch = saved_punch
     lines = text.splitlines()
+    # Belt and braces: if a BEGIN BULK line is ever written, keep only what follows it.
     for i, line in enumerate(lines):
         u = line.strip().upper()
         if u.startswith("BEGIN") and "BULK" in u:
             lines = lines[i + 1:]
             break
+    bad = [x for x in lines if x.strip().upper().startswith(("SOL ", "CEND", "INIT ", "NASTRAN "))]
+    if bad:
+        raise RuntimeError(f"bulk_text: executive/case control leaked into the bulk data: {bad[:3]}")
     lines = [x for x in lines if not _ENDDATA_RE.match(x)]
     return "\n".join(lines) + "\n"
 

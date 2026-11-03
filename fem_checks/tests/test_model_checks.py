@@ -231,6 +231,8 @@ def test_long_case_control_lines_do_not_stop_bulk_write(tmp_path):
     d = tmp_path / "long.dat"
     d.write_text(DECK.format(grids=g, quads=q).replace("  ECHO = NONE\n", "  ECHO = NONE\n" + long_cc))
     m = M.read_model(d, tmp_path / "work")
+    before = m.punch
     text = M.bulk_text(m)
     assert "GRID" in text and "MEFFMASS" not in text
-    assert m.case_control_deck is not None   # restored after the write
+    assert "SOL " not in text and "CEND" not in text   # no executive control leaked in
+    assert m.punch == before                           # pyNastran flag restored
