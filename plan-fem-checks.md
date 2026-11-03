@@ -34,7 +34,7 @@ Research: `research-fem-checks.md`. Reference docs: `FEMCI-The-Book.pdf` (femci 
   GUI, settings saved to JSON, same JSON usable from the command line.
 - **Python:** user can `pip install pyNastran` (and reportlab) on the work PC.
 
-## Decisions to confirm (choices I made that you haven't answered)
+## Decisions to confirm (all 8 approved by the user 2026-11-04; #8 = model deck, pending upload)
 
 1. **Rigid-body mode criterion.** Your sample model's rigid-body modes are 1.0e-4 to
    4.3e-4 Hz. **It fails FEMCI's absolute ≤ 1e-4 Hz limit on 5 of 6 modes**, yet
@@ -238,7 +238,8 @@ Folder `<deck>_fem_checks\`:
 
 ## Status
 
-**Plan written, awaiting approval** (2026-11-04). Not implemented.
+**Plan approved** (2026-11-04). Not implemented yet; waiting on the full model deck upload
+for deck-writing tests.
 
 Checksum question resolved: FEMAP-exported decks end with a checksum (`ENDDATA b482e8c1`),
 but the user confirmed a hand-written deck with no checksum runs on the workstation's
