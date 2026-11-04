@@ -82,10 +82,10 @@ MIRROR_DIAMETER_IN = {
     "M1": 15.75,
     "M2": 3.46,    # NOTE: smaller than its thermal mesh span (~6.225) -> discrepancy warning
     "M3": 4.65,
-    "M4": 5.905,   # M4-M7 share one value (provisional)
-    "M5": 5.905,
-    "M6": 5.905,
-    "M7": 5.905,
+    "M4": 2.99213,   # M4-M7 share one value (provisional)
+    "M5": 2.99213,
+    "M6": 2.99213,
+    "M7": 2.99213,
 }
 # W1, P1, Mel, Maz are NOT mirrors -> not supported (rejected if selected).
 
