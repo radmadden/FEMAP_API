@@ -1,74 +1,42 @@
-13:01:45 Output folder: D:\IRAD\Scratch runs\fem checks test
-13:01:45 Reading model D:/IRAD/Scratch runs/BD_IRAD_NM_v2_HLOS-0002.dat ...
-13:01:54   24848 grids, 16630 elements, pyNastran mass 1.90061
-13:01:54 Mount grid 300000 (auto), 4.453 from CG (6.4% of model size)
-13:01:54 STOPPED: AssertionError: len(msg)=77; msg=
-MEFFMASS(PLOT,
-PRINT,
-GRID=0,
-PARTFAC,
-MEFFM,
-MEFFW,
-FRACSUM,
-SUMMARY) = YES
-
+19:14:34 Output folder: D:\IRAD\Scratch runs\fem checks test
+19:14:34 Reading model D:/IRAD/Scratch runs/BD_IRAD_NM_v2_HLOS-0002.dat ...
+19:14:44   24848 grids, 16630 elements, pyNastran mass 1.90061
+19:14:44 Mount grid 300000 (auto), 4.453 from CG (6.4% of model size)
+19:14:44 Wrote model_bulk.bdf (large-field, model PARAMs AUTOSPC/GRDPNT/POST removed)
+19:14:44 Wrote decks: 01_freefree.dat, 02_constrained_modes.dat, 03_unit_disp.dat, 04_gravity.dat
+19:14:44 Nastran: 01_freefree.dat
+19:14:44   running: C:/Program Files/Siemens/Simcenter3D_2306/NXNASTRAN/bin/nastran.exe 01_freefree.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\fem checks test)
+19:14:55   done in 11 s
+19:14:55 Nastran: 02_constrained_modes.dat
+19:14:55   running: C:/Program Files/Siemens/Simcenter3D_2306/NXNASTRAN/bin/nastran.exe 02_constrained_modes.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\fem checks test)
+19:15:08   done in 14 s
+19:15:08 Nastran: 03_unit_disp.dat
+19:15:08   running: C:/Program Files/Siemens/Simcenter3D_2306/NXNASTRAN/bin/nastran.exe 03_unit_disp.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\fem checks test)
+19:15:22   done in 13 s
+19:15:22 Nastran: 04_gravity.dat
+19:15:22   running: C:/Program Files/Siemens/Simcenter3D_2306/NXNASTRAN/bin/nastran.exe 04_gravity.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\fem checks test)
+19:15:30   done in 9 s
+19:15:30 Reading unit-displacement OP2 ...
+19:15:34 STOPPED: PermissionError: [Errno 13] Permission denied: 'D:\\IRAD\\Scratch runs\\fem checks test\\fem_checks_report.pdf'
 Traceback (most recent call last):
   File "D:\FEMAP_API\fem_checks\pipeline.py", line 72, in run
     return _run(settings, out, summary, say, run_solver)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "D:\FEMAP_API\fem_checks\pipeline.py", line 117, in _run
-    (out / "model_bulk.bdf").write_text(M.bulk_text(model))
-                                        ^^^^^^^^^^^^^^^^^^
-  File "D:\FEMAP_API\fem_checks\model.py", line 403, in bulk_text
-    model.write_bdf(buf, size=16, is_double=False, enddata=False, close=False)
-  File "d:\FEMAP_API\.venv\Lib\site-packages\pyNastran\bdf\bdf_interface\write_mesh.py", line 145, in write_bdf
-    self._write_header(bdf_file, encoding, write_header=write_header)
-  File "d:\FEMAP_API\.venv\Lib\site-packages\pyNastran\bdf\bdf_interface\write_mesh.py", line 255, in _write_header
-    self._write_case_control_deck(bdf_file)
-  File "d:\FEMAP_API\.venv\Lib\site-packages\pyNastran\bdf\bdf_interface\write_mesh.py", line 286, in _write_case_control_deck
-    msg += str(self.case_control_deck)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "d:\FEMAP_API\.venv\Lib\site-packages\pyNastran\bdf\case_control_deck.py", line 695, in __repr__
-    return self.write()
-           ^^^^^^^^^^^^
-  File "d:\FEMAP_API\.venv\Lib\site-packages\pyNastran\bdf\case_control_deck.py", line 716, in write
-    msg += subcase.write_subcase(subcase0)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "d:\FEMAP_API\.venv\Lib\site-packages\pyNastran\bdf\subcase.py", line 1084, in write_subcase
-    msg = str(self)
-          ^^^^^^^^^
-  File "d:\FEMAP_API\.venv\Lib\site-packages\pyNastran\bdf\subcase.py", line 1185, in __repr__
-    msg += self.print_param(key, param)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "d:\FEMAP_API\.venv\Lib\site-packages\pyNastran\bdf\subcase.py", line 967, in print_param
-    assert len(msgi) < 68, f'len(msg)={len(msgi)}; msg=\n{msgi}'
-           ^^^^^^^^^^^^^^
-AssertionError: len(msg)=77; msg=
-MEFFMASS(PLOT,
-PRINT,
-GRID=0,
-PARTFAC,
-MEFFM,
-MEFFW,
-FRACSUM,
-SUMMARY) = YES
-
-18:42:49 Output folder: D:\IRAD\Scratch runs\fem checks test
-18:42:49 Reading model D:/IRAD/Scratch runs/BD_IRAD_NM_v2_HLOS-0002.dat ...
-18:42:59   24848 grids, 16630 elements, pyNastran mass 1.90061
-18:42:59 Mount grid 300000 (auto), 4.453 from CG (6.4% of model size)
-18:42:59 Wrote model_bulk.bdf (large-field, model PARAMs AUTOSPC/GRDPNT/POST removed)
-18:42:59 Wrote decks: 01_freefree.dat, 02_constrained_modes.dat, 03_unit_disp.dat, 04_gravity.dat
-18:42:59 Nastran: 01_freefree.dat
-18:42:59   running: C:\Program Files\Siemens\Femap 2606\NASTRAN\bin\nastranw.exe 01_freefree.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\fem checks test)
-18:43:00   FAILED: no .f06 written (return code 0); see 01_freefree.f04/.log in 1 s
-18:43:00 Nastran: 02_constrained_modes.dat
-18:43:00   running: C:\Program Files\Siemens\Femap 2606\NASTRAN\bin\nastranw.exe 02_constrained_modes.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\fem checks test)
-18:43:00   FAILED: no .f06 written (return code 0); see 02_constrained_modes.f04/.log in 0 s
-18:43:00 Nastran: 03_unit_disp.dat
-18:43:00   running: C:\Program Files\Siemens\Femap 2606\NASTRAN\bin\nastranw.exe 03_unit_disp.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\fem checks test)
-18:43:00   FAILED: no .f06 written (return code 0); see 03_unit_disp.f04/.log in 0 s
-18:43:00 Nastran: 04_gravity.dat
-18:43:00   running: C:\Program Files\Siemens\Femap 2606\NASTRAN\bin\nastranw.exe 04_gravity.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\fem checks test)
-18:43:00   FAILED: no .f06 written (return code 0); see 04_gravity.f04/.log in 0 s
-18:43:03 Overall: ERROR. Report: D:\IRAD\Scratch runs\fem checks test\fem_checks_report.pdf
+  File "D:\FEMAP_API\fem_checks\pipeline.py", line 221, in _run
+    summary.report = RP.build_pdf(out / "fem_checks_report.pdf", header, results, charts,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\FEMAP_API\fem_checks\report.py", line 255, in build_pdf
+    doc.build(story)
+  File "d:\FEMAP_API\.venv\Lib\site-packages\reportlab\platypus\doctemplate.py", line 1322, in build
+    BaseDocTemplate.build(self,flowables, canvasmaker=canvasmaker)
+  File "d:\FEMAP_API\.venv\Lib\site-packages\reportlab\platypus\doctemplate.py", line 1109, in build
+    self._endBuild()
+  File "d:\FEMAP_API\.venv\Lib\site-packages\reportlab\platypus\doctemplate.py", line 1044, in _endBuild
+    if getattr(self,'_doSave',1): self.canv.save()
+                                  ^^^^^^^^^^^^^^^^
+  File "d:\FEMAP_API\.venv\Lib\site-packages\reportlab\pdfgen\canvas.py", line 1302, in save
+    self._doc.SaveToFile(self._filename, self)
+  File "d:\FEMAP_API\.venv\Lib\site-packages\reportlab\pdfbase\pdfdoc.py", line 208, in SaveToFile
+    f = open(filename, "wb")
+        ^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'D:\\IRAD\\Scratch runs\\fem checks test\\fem_checks_report.pdf'
