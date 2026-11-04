@@ -18,6 +18,7 @@ from . import decks as D
 from . import model as M
 from . import report as RP
 from . import results as R
+from .method import method_sections
 from .f06 import parse_f06
 from .runner import RunResult, run_nastran
 from .settings import Settings
@@ -226,15 +227,17 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
     summary.results_json = out / "results.json"
     RP.write_json(summary.results_json, dict(header=header, settings=s, model=_model_json(info),
                                              mount=mount, runs=summary.runs, checks=results))
+    method = method_sections(s, unit, mount.grid, mount.auto, spc_label,
+                             real_label if s.real_spc_set else "the model's real SPC set", s.alpha)
     pdf = out / "fem_checks_report.pdf"
     try:
-        summary.report = RP.build_pdf(pdf, header, results, charts, messages, summary.runs)
+        summary.report = RP.build_pdf(pdf, header, results, charts, messages, summary.runs, method)
     except PermissionError:
         # Windows locks a PDF that is open in a viewer (an early full run stopped
         # here). Write a time-stamped copy instead of losing the whole run.
         alt = out / f"fem_checks_report_{_dt.datetime.now():%Y%m%d_%H%M%S}.pdf"
         say(f"  {pdf.name} is open in another program (locked); writing {alt.name} instead")
-        summary.report = RP.build_pdf(alt, header, results, charts, messages, summary.runs)
+        summary.report = RP.build_pdf(alt, header, results, charts, messages, summary.runs, method)
     say(f"Overall: {overall}. Report: {summary.report}")
     return summary
 

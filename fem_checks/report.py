@@ -161,7 +161,9 @@ def chart_quality(quality: dict, path: Path) -> Path | None:
 
 # ------------------------------------------------------------------ PDF
 def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
-              messages: list, runs: list) -> Path:
+              messages: list, runs: list, method: list | None = None) -> Path:
+    """method: [(heading, [paragraphs])] from method.method_sections(); printed as
+    Appendix A so the report explains its own criteria and their reasoning."""
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import landscape, letter
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -268,8 +270,20 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
             if lines:
                 story += excerpt(title, lines)
 
+    if method:
+        story.append(PageBreak())
+        story.append(Paragraph("Appendix A: Method", h2))
+        story.append(Paragraph(
+            "What each check runs, its pass criteria with the values applied in this run, and "
+            "the reasoning behind them. Dn refers to the design decisions in "
+            "fem_checks/docs/design.md.", small))
+        for heading, paras in method:
+            story.append(Paragraph(escape(heading), h3))
+            for p in paras:
+                story.append(Paragraph(escape(p), body))
+                story.append(Spacer(1, 3))
     story.append(PageBreak())
-    story.append(Paragraph("Appendix: Nastran runs and messages", h2))
+    story.append(Paragraph("Appendix B: Nastran runs and messages", h2))
     story.append(table(["Deck", "Seconds", "Return code", "Status"],
                        [[Path(r.deck).name, f"{r.seconds:.1f}", r.returncode, r.error or "ok"] for r in runs]))
     if messages:

@@ -134,7 +134,10 @@ Folder `<deck>_fem_checks\`:
     - the verbatim .f06 blocks the verdict was read from.
 
     Values compared by a criterion share the same shading.
-  - appendix: run times and every FATAL/WARNING message.
+  - Appendix A, Method: for each check, what was run, the pass criteria with the values
+    applied in that run, and the reasoning (D1-D8) with references, so the report stands
+    on its own;
+  - Appendix B: run times and every FATAL/WARNING message.
 - `results.json`: every number in the report.
 - `fem_checks.log`: the run log, with full error traces.
 
@@ -152,6 +155,7 @@ Folder `<deck>_fem_checks\`:
 | `results.py` | OP2 reading, coordinate transformation, theoretical fields, force/stress peaks |
 | `checks.py` | PASS/FAIL evaluation and report tables |
 | `report.py` | PDF (reportlab), charts (matplotlib), `results.json` |
+| `method.py` | Method appendix text, generated from the run settings |
 | `setup_env.py` + `setup_fem_checks.bat` | Workstation setup: Python 3.12 virtual environment, packages, Jupyter kernel, VS Code configuration, Nastran discovery, self-test |
 | `tests/` | Parser tests on the reference .f06 files; model, deck and check tests on a generated model and the reference deck |
 
@@ -172,7 +176,7 @@ Folder `<deck>_fem_checks\`:
 
 ## 8. Verification status
 
-Automated tests (`python -m pytest fem_checks/tests`, 19 tests) cover:
+Automated tests (`python -m pytest fem_checks/tests`, 20 tests) cover:
 - the .f06 parsers against the reference .f06 files;
 - the check logic on those files (free-free PASS at ratio 3.2e-6; gravity PASS and FAIL
   with a 1% mass error; mass properties in both product conventions);
@@ -228,3 +232,4 @@ Operation:
 | B | Report shows full data tables and verbatim .f06 excerpts with matched-value shading; check files named after the model; check decks carry title, subtitle and FEMAP provenance. |
 | C | Corrections from live runs: bulk data written in pyNastran bulk-only mode (pyNastran asserts on case-control lines longer than ~68 characters); `nastranw.exe` replaced by `nastran.exe`; time-stamped report when the PDF is locked; mount rule refers to permanent constraints only. |
 | D | Repository reorganized: package documents in `fem_checks/docs/`, reference model and outputs in `fem_checks/reference_model/`, reference PDFs in `reference/`; README files added. |
+| E | Method appendix added to the report (criteria, values applied and reasoning for each check). |

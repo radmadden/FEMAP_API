@@ -244,3 +244,19 @@ def test_long_case_control_lines_do_not_stop_bulk_write(tmp_path):
     assert "GRID" in text and "MEFFMASS" not in text
     assert "SOL " not in text and "CEND" not in text   # no executive control leaked in
     assert m.punch == before                           # pyNastran flag restored
+
+
+def test_method_appendix_states_run_values():
+    """The Method appendix must quote the thresholds and mount actually used in the run."""
+    from fem_checks.method import method_sections
+    s = Settings(units="mm-t-s", real_spc_set=7)
+    s.checks["thermal"] = True
+    s.thresholds.rbm_ratio = 3e-5
+    secs = dict(method_sections(s, UNIT_SYSTEMS["mm-t-s"], 4242, False, "kinematic mount",
+                                "model SPC set 7", 2e-5))
+    assert {"General", "Free-free modes and GROUNDCHECK", "Unit gravity", "Thermal soak",
+            "References"} <= set(secs)
+    text = " ".join(" ".join(v) for v in secs.values())
+    assert "3e-05" in text and "4242" in text and "9806.65" in text and "N-mm" in text
+    assert "alpha = 2e-05" in text and "model SPC set 7" in text
+    assert "Mass properties" not in secs        # no targets entered -> not described
