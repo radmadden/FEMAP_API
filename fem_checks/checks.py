@@ -265,8 +265,11 @@ def check_constrained(f06: Optional[F06], spc_label: str) -> CheckResult:
 # ===================================================== unit enforced displacement
 def check_unit_disp(f06: Optional[F06], fields: dict, force_peaks: dict, mount_xyz,
                     rotation_grids: set, th, force_tol: float, moment_tol: float,
-                    units: dict) -> CheckResult:
-    """fields: {subcase: results.Field}; force_peaks: {subcase: element_force_peaks()}."""
+                    units: dict, mount_axes=None, mount_cd: int = 0) -> CheckResult:
+    """fields: {subcase: results.Field}; force_peaks: {subcase: element_force_peaks()}.
+    mount_axes: the mount grid's output-system axes in basic (rows); the enforced DOF
+    act along them (identity when the mount has CD = 0)."""
+    max_ = np.eye(3) if mount_axes is None else np.asarray(mount_axes, dtype=float)
     key, title = "unit_disp", "Unit enforced displacement / rotation"
     bad = _fatal_or_missing(f06, key, title)
     if bad:
@@ -298,7 +301,7 @@ def check_unit_disp(f06: Optional[F06], fields: dict, force_peaks: dict, mount_x
             fails.append(f"{name}: no displacements in the OP2 for this model's grids")
             field_rows.append([name, "-", "-", "-", "missing"])
         else:
-            t_exp, r_exp = R.rigid_body_field(f.xyz, rm, sc)
+            t_exp, r_exp = R.rigid_body_field(f.xyz, rm, sc, max_)
             err = R.field_error(f, t_exp, r_exp, rotation_grids)
             ok = err["t_err"] <= th.ud_disp_rel and (math.isnan(err["r_err"]) or err["r_err"] <= th.ud_disp_rel)
             field_rows.append([name, _e(err["t_err"]), _e(err["r_err"]), err["n_rot_grids"],
@@ -348,10 +351,13 @@ def check_unit_disp(f06: Optional[F06], fields: dict, force_peaks: dict, mount_x
         if f is None or len(f.nids) == 0:
             continue
         i = int(np.argmin(np.linalg.norm(f.xyz - rm, axis=1)))
-        mrows.append([DOF_NAMES[sc - 1], f.nids[i]] + [_e(v, "{:.6E}") for v in list(f.t[i]) + list(f.r[i])])
+        # Shown in the mount's own output system, so the enforced DOF reads 1.0.
+        t_loc, r_loc = max_ @ f.t[i], max_ @ f.r[i]
+        mrows.append([DOF_NAMES[sc - 1], f.nids[i]] + [_e(v, "{:.6E}") for v in list(t_loc) + list(r_loc)])
         mhl.append((len(mrows) - 1, 1 + sc, 1 + sc, "pair"))
     if mrows:
-        tables.insert(0, Table("Displacement of the mount grid (basic), one row per subcase",
+        tables.insert(0, Table(f"Displacement of the mount grid (its output system CD={mount_cd}), "
+                               "one row per subcase",
                                ["Subcase", "Grid"] + DOF_NAMES, mrows,
                                "Shaded diagonal = the enforced DOF; it must read 1.0 and every other "
                                "entry 0.", mhl))

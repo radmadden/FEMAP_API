@@ -32,44 +32,79 @@ class Field:
     r: np.ndarray       # (n, 3) rotations in basic
 
 
-def displacements_basic(op2: OP2, model: BDF, transformed: dict) -> dict[int, Field]:
-    """{subcase: Field} with translations/rotations in basic.
+def cd_axes(coord, xyz: np.ndarray) -> np.ndarray:
+    """Unit vectors (in basic) of output system ``coord`` at basic positions ``xyz``.
 
-    ``transformed`` is a one-element cache dict so the CD -> basic transform is only
-    applied once per OP2 object (pyNastran transforms the arrays in place)."""
-    if not op2.displacements:
-        return {}
-    if not transformed.get("done"):
-        has_cd = any((n.cd or 0) != 0 for n in model.nodes.values())
-        if has_cd:
-            icd, _icp, _xyz_cp, _nid_cp_cd = model.get_displacement_index_xyz_cp_cd()
-            xyz_cid0 = model.get_xyz_in_coord(cid=0)
-            op2.transform_displacements_to_global(icd, model.coords, xyz_cid0=xyz_cid0)
-        transformed["done"] = True
+    Returns (n, 3, 3): axes[k, a] is local axis a at grid k. A rectangular system has the
+    same axes everywhere; a cylindrical system's (r, theta, z) and a spherical system's
+    (r, theta, phi) axes depend on the grid's position (Nastran's convention: theta about
+    the local z axis for C; theta from z and phi about z for S). A grid on the axis gets
+    theta = 0, as in Nastran."""
+    i, j, k = (np.asarray(coord.i, float), np.asarray(coord.j, float), np.asarray(coord.k, float))
+    n = len(xyz)
+    if coord.Type == "R":
+        return np.broadcast_to(np.stack([i, j, k]), (n, 3, 3)).copy()
+    p = (xyz - np.asarray(coord.origin, float)) @ np.stack([i, j, k]).T  # local rectangular coords
+    phi = np.arctan2(p[:, 1], p[:, 0])                                  # angle about local z
+    c, s_ = np.cos(phi)[:, None], np.sin(phi)[:, None]
+    if coord.Type == "C":
+        e_r = c * i + s_ * j
+        e_t = -s_ * i + c * j
+        return np.stack([e_r, e_t, np.broadcast_to(k, (n, 3))], axis=1)
+    if coord.Type == "S":
+        th = np.arctan2(np.hypot(p[:, 0], p[:, 1]), p[:, 2])[:, None]    # angle from local z
+        ct, st = np.cos(th), np.sin(th)
+        e_r = st * (c * i + s_ * j) + ct * k
+        e_t = ct * (c * i + s_ * j) - st * k
+        e_p = -s_ * i + c * j
+        return np.stack([e_r, e_t, e_p], axis=1)
+    raise ValueError(f"coordinate system {coord.cid} has unsupported type {coord.Type!r}")
+
+
+def displacements_basic(op2: OP2, model: BDF, transformed: Optional[dict] = None) -> dict[int, Field]:
+    """{subcase: Field} with translations and rotations in the basic system.
+
+    OP2 displacements are in each grid's output system (CD). They are rotated to basic
+    here, matched by GRID ID. (pyNastran's own transform_displacements_to_global indexes
+    by position in the model's node list and is documented to work only when every node
+    is present in the same order; extra points, e.g. Lagrange multiplier points under
+    RIGID=LAGRAN, or scalar points, would misalign it.) Rows that are not model GRIDs are
+    dropped."""
     out = {}
     for sc, disp in op2.displacements.items():
-        ngt = disp.node_gridtype
-        grid = ngt[:, 1] == 1  # 1 = GRID, 2 = SPOINT
-        nids = ngt[grid, 0]
-        keep = np.array([n in model.nodes for n in nids], dtype=bool)
+        ngt = np.asarray(disp.node_gridtype)
+        is_grid = ngt[:, 1] == 1  # 1 = GRID; scalar/extra/Lagrange points have other types
+        nids = ngt[is_grid, 0]
+        keep = np.array([int(n) in model.nodes for n in nids], dtype=bool)
         nids = nids[keep]
-        data = disp.data[0][grid][keep]
-        xyz = np.array([model.nodes[n].get_position() for n in nids], dtype=float)
-        out[sc] = Field(nids, xyz, data[:, :3].astype(float), data[:, 3:6].astype(float))
+        data = np.asarray(disp.data[0], dtype=float)[is_grid][keep]
+        xyz = np.array([model.nodes[int(n)].get_position() for n in nids], dtype=float).reshape(-1, 3)
+        t, r = data[:, :3].copy(), data[:, 3:6].copy()
+        cds = np.array([model.nodes[int(n)].cd or 0 for n in nids], dtype=int)
+        for cd in np.unique(cds):
+            if cd == 0:
+                continue
+            m = cds == cd
+            ax = cd_axes(model.coords[int(cd)], xyz[m])            # (n, 3, 3)
+            t[m] = np.einsum("na,nab->nb", t[m], ax)
+            r[m] = np.einsum("na,nab->nb", r[m], ax)
+        out[sc] = Field(nids, xyz, t, r)
     return out
 
 
-def rigid_body_field(xyz: np.ndarray, mount_xyz: np.ndarray, dof: int):
-    """Expected motion for a unit SPCD at the mount in DOF 1..6 (basic directions).
+def rigid_body_field(xyz: np.ndarray, mount_xyz: np.ndarray, dof: int, axes=None):
+    """Expected motion for a unit SPCD at the mount in DOF 1..6, in basic.
+
+    The SPCD acts along the mount grid's output (CD) axes; ``axes`` holds those axes as
+    basic unit vectors (rows), identity when CD = 0.
     Translation DOF k: every grid moves e_k, no rotation.
     Rotation DOF k: every grid rotates theta = e_k and moves theta x (r - r_mount).
     Linear statics uses the small-rotation form, so this is exact for a 1 rad SPCD."""
     n = xyz.shape[0]
-    e = np.zeros(3)
+    ax = np.eye(3) if axes is None else np.asarray(axes, dtype=float)
+    e = ax[(dof - 1) % 3]
     if dof <= 3:
-        e[dof - 1] = 1.0
         return np.tile(e, (n, 1)), np.zeros((n, 3))
-    e[dof - 4] = 1.0
     return np.cross(e, xyz - mount_xyz), np.tile(e, (n, 1))
 
 

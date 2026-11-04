@@ -75,7 +75,7 @@ GUI fields, stored in `<output>/fem_checks.json`:
    date, and the leading `NASTRAN`/`INIT` statements.
 3. **Choose the mount grid.** A grid qualifies when it has rotational stiffness (shell,
    beam, bar, bush, or RBE2 independent grid), is not dependent on a rigid element or MPC,
-   has no permanent constraint (GRID PS field), and has CD = 0. SPC cards in the model's own
+   has no permanent constraint (GRID PS field). SPC cards in the model's own
    sets do not disqualify a grid, because the check decks select only their own set. Auto
    mode takes the qualifying grid nearest the CG; an entered grid is validated with the same
    rules.
@@ -165,7 +165,8 @@ Folder `<deck>_fem_checks\`:
 - The deck must be readable by pyNastran 1.4.1; RTRPLT is not supported.
 - The bulk data is rewritten by pyNastran. On the reference deck all 41,538 cards are
   field-identical after the round trip.
-- The mount grid must have CD = 0.
+- The enforced displacements act along the mount grid's output (CD) axes; the theory fields
+  use those axes, so a mount with a cylindrical or spherical CD is valid.
 - Mass-property targets are about the CG in the FEM basic frame.
 - The auto-pick uses pyNastran's CG, which excludes NSM; the report's GPWG values are
   authoritative.
@@ -233,3 +234,4 @@ Operation:
 | C | Corrections from live runs: bulk data written in pyNastran bulk-only mode (pyNastran asserts on case-control lines longer than ~68 characters); `nastranw.exe` replaced by `nastran.exe`; time-stamped report when the PDF is locked; mount rule refers to permanent constraints only. |
 | D | Repository reorganized: package documents in `fem_checks/docs/`, reference model and outputs in `fem_checks/reference_model/`, reference PDFs in `reference/`; README files added. |
 | E | Method appendix added to the report (criteria, values applied and reasoning for each check). |
+| F | Displacements rotated from each grid's output system to basic by grid ID (any R/C/S system); the mount grid may have any output system; every check's verdict and reason, and Nastran FATAL messages, written to the run log. |

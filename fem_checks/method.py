@@ -44,7 +44,8 @@ def method_sections(s, unit: dict, mount_grid: int, mount_auto: bool, gravity_la
         f"({'chosen automatically as the qualifying grid nearest the CG' if mount_auto else 'specified for this run'}), "
         "constrained in all six DOF with SPC1. A qualifying grid has rotational stiffness (it "
         "lies on a shell, beam, bar or bush, or is an RBE2 independent grid), is not dependent "
-        "on a rigid element or MPC, and has no permanent constraint. A grid on solid elements "
+        "on a rigid element or MPC, and has no permanent constraint. The enforced DOF act along "
+        "the mount grid's output coordinate axes. A grid on solid elements "
         "only would leave the rotation checks untested. FEMCI asks for the mount near the CG "
         "(femci ~1966); the report gives its distance from the CG.",
         f"Units: {s.units}; g = {unit['g']:g} {lu}/s^2. FEMCI's limits of 0.1 lb force and "

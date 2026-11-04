@@ -260,3 +260,67 @@ def test_method_appendix_states_run_values():
     assert "3e-05" in text and "4242" in text and "9806.65" in text and "N-mm" in text
     assert "alpha = 2e-05" in text and "model SPC set 7" in text
     assert "Mass properties" not in secs        # no targets entered -> not described
+
+
+def test_cd_axes_match_pynastran_geometry():
+    """Output-system axes for R/C/S systems must equal the direction a grid moves when one
+    local coordinate changes (finite difference through pyNastran's own transform)."""
+    from pyNastran.bdf.bdf import BDF
+    m = BDF(debug=False)
+    m.add_cord2r(2, [1., 2., 3.], [1., 2., 4.], [2., 3., 3.])
+    m.add_cord2c(3, [0.5, -1., 2.], [0.5, -1., 3.], [1.5, -1., 2.])
+    m.add_cord2s(4, [1., 2., 3.], [1., 2., 4.], [2., 2., 3.])
+    m.cross_reference()
+    rng = np.random.default_rng(1)
+    for cid in (2, 3, 4):
+        c = m.coords[cid]
+        loc = rng.uniform([1.0, 20.0, 10.0], [3.0, 70.0, 80.0], size=(5, 3))  # r/x, theta/y (deg), z/phi
+        xyz = np.array([c.transform_node_to_global(p) for p in loc])
+        ax = R.cd_axes(c, xyz)
+        for k in range(5):
+            for a in range(3):
+                d = np.zeros(3); d[a] = 1e-6   # tiny step in one local coordinate
+                step = c.transform_node_to_global(loc[k] + d) - xyz[k]
+                step /= np.linalg.norm(step)
+                assert ax[k, a] == pytest.approx(step, abs=1e-5), (c.Type, a)
+
+
+def test_displacements_rotated_by_grid_id_not_position():
+    """A local radial displacement at a cylindrical-CD grid becomes the basic radial
+    direction, matched by grid ID even when the OP2 holds extra non-GRID rows."""
+    from pyNastran.bdf.bdf import BDF
+    m = BDF(debug=False)
+    m.add_cord2c(3, [0., 0., 0.], [0., 0., 1.], [1., 0., 0.])
+    m.add_grid(10, [0., 2., 0.], cd=3)    # on +y: e_r = +y, e_theta = -x
+    m.add_grid(20, [5., 0., 0.])          # basic output
+    m.cross_reference()
+
+    class Disp:   # minimal stand-in for a pyNastran displacement table
+        node_gridtype = np.array([[7, 2], [20, 1], [10, 1]])   # row 0: a scalar point
+        data = np.array([[[9, 9, 9, 9, 9, 9], [0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 1, 0]]], float)
+
+    class Op2:
+        displacements = {1: Disp()}
+
+    f = R.displacements_basic(Op2(), m)[1]
+    assert list(f.nids) == [20, 10]
+    assert f.t[1] == pytest.approx([0, 1, 0]) and f.r[1] == pytest.approx([-1, 0, 0])
+    assert f.t[0] == pytest.approx([0, 0, 1])
+
+
+def test_mount_with_cylindrical_cd(deck, tmp_path):
+    """A mount grid with a cylindrical output system is accepted; the enforced DOF act
+    along its local axes and the rigid-body field follows them."""
+    model = M.read_model(deck, tmp_path / "work")
+    model.add_cord2c(9, [2., 0., 0.5], [2., 0., 1.5], [3., 0., 0.5])
+    model.cross_reference()
+    model.nodes[201].cd = 9        # RBE2 independent grid at (2, 2, 0.5): on local +y
+    info = M.model_info(model, deck, quality=False)
+    m = M.choose_mount(model, info, 201)
+    assert m.cd == 9
+    assert m.axes[0] == pytest.approx([0, 1, 0]) and m.axes[1] == pytest.approx([-1, 0, 0])
+    xyz = np.array([[2., 2., 0.5], [2., 3., 0.5]])
+    t, r = R.rigid_body_field(xyz, np.array(m.xyz), 1, m.axes)   # unit local "r" = basic +y
+    assert t[1] == pytest.approx([0, 1, 0])
+    t, r = R.rigid_body_field(xyz, np.array(m.xyz), 6, m.axes)   # rotation about local z
+    assert r[0] == pytest.approx([0, 0, 1]) and t[1] == pytest.approx([-1, 0, 0])

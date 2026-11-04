@@ -323,6 +323,11 @@ class MountChoice:
     distance_fraction: float     # distance / model size
     auto: bool
     rotation_grids: list         # grids whose rotations are checked in unit-disp
+    cd: int = 0                  # the mount grid's output coordinate system
+    # Basic-system unit vectors of the mount's output axes at the mount (rows = local
+    # x/r, y/theta, z/phi). SPC1/SPCD components act along these axes, so the enforced
+    # unit displacements and rotations are along them, not necessarily basic X/Y/Z.
+    axes: list = field(default_factory=lambda: np.eye(3).tolist())
 
 
 def _rotation_grids(model: BDF) -> set[int]:
@@ -359,9 +364,6 @@ def _mount_problems(model: BDF, nid: int, rot: set, dep: dict, spc: set) -> list
                  f"(components {dep[nid]}); Nastran cannot SPC it")
     if nid in spc:
         p.append(f"grid {nid} has a permanent constraint (PS={model.nodes[nid].ps}) on its GRID card")
-    if model.nodes[nid].cd not in (0, None):
-        p.append(f"grid {nid} has output coordinate system CD={model.nodes[nid].cd}; "
-                 "the mount must use CD=0 so SPCD directions are basic X/Y/Z")
     return p
 
 
@@ -378,18 +380,24 @@ def choose_mount(model: BDF, info: ModelInfo, requested: int = 0) -> MountChoice
             raise ValueError("Mount grid rejected: " + "; ".join(problems))
         nid = requested
     else:
-        cands = [n for n in rot if n in model.nodes and n not in dep and n not in spc
-                 and model.nodes[n].cd in (0, None)]
+        cands = [n for n in rot if n in model.nodes and n not in dep and n not in spc]
         if not cands:
             raise ValueError("No grid qualifies as a kinematic mount (needs rotational "
-                             "stiffness, not dependent, no SPC, CD=0). Enter one by hand.")
+                             "stiffness, not dependent on a rigid element/MPC, no permanent "
+                             "constraint). Enter one by hand.")
         xyz = np.array([model.nodes[n].get_position() for n in cands])
         nid = int(cands[int(np.argmin(np.linalg.norm(xyz - cg, axis=1)))])
     pos = model.nodes[nid].get_position()
     dist = float(np.linalg.norm(pos - cg))
+    cd = int(model.nodes[nid].cd or 0)
+    axes = np.eye(3)
+    if cd:
+        from .results import cd_axes  # local import: results pulls in the OP2 reader
+        axes = cd_axes(model.coords[cd], np.asarray([pos], float))[0]
     return MountChoice(grid=nid, xyz=pos.tolist(), distance_to_cg=dist,
                        distance_fraction=dist / info.size if info.size else float("nan"),
-                       auto=not requested, rotation_grids=sorted(rot))
+                       auto=not requested, rotation_grids=sorted(rot), cd=cd,
+                       axes=np.asarray(axes).tolist())
 
 
 # --------------------------------------------------------------- bulk writing

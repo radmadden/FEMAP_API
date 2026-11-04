@@ -153,29 +153,44 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
     messages = [(Path(r.deck).name, m) for k, r in runs.items() if f06s.get(k)
                 for m in f06s[k].messages]
     versions = sorted({f.version for f in f06s.values() if f})
+    for key, r in runs.items():
+        f = f06s.get(key)
+        name = Path(r.deck).name
+        if f is None:
+            say(f"  {name}: no .f06 ({r.error})")
+            continue
+        if not f.completed:
+            say(f"  {name}: .f06 has no END OF JOB (run stopped early)")
+        for m in f.fatals:
+            say(f"  {name}: {m.text[:300]}")
+        if r.op2 is None and key in ("unit_disp", "thermal"):
+            say(f"  {name}: no .op2 written; check the PARAM,POST and output requests in the .f06 echo")
 
     # STEP 8: evaluate ------------------------------------------------------------
+    # Each check is evaluated inside guard(): an unexpected error in one check (e.g. an OP2
+    # table a pyNastran version doesn't read) becomes that check's ERROR, with the full
+    # traceback in fem_checks.log, instead of stopping the whole run.
     th = s.thresholds
     results = []
-    if s.checks.get("model_summary"):
-        results.append(C.check_model_summary(info, mount, base, spc_label, real_label))
-    if s.checks.get("freefree"):
-        results.append(C.check_freefree(f06s.get("freefree"), th, s.autospc_freefree))
-    if s.checks.get("constrained_modes"):
-        results.append(C.check_constrained(f06s.get("constrained_modes"), real_label))
-    if s.checks.get("unit_disp"):
-        results.append(_unit_disp(runs.get("unit_disp"), f06s.get("unit_disp"), model, mount, s, unit, say))
-    if s.checks.get("gravity"):
+
+    def guard(key, title, fn):
+        try:
+            results.append(fn())
+        except Exception as exc:
+            say(f"  {title}: evaluation failed: {type(exc).__name__}: {exc}")
+            say(traceback.format_exc())
+            results.append(C.error_result(key, title, f"evaluation failed: {type(exc).__name__}: {exc} "
+                                                      "(traceback in fem_checks.log)"))
+
+    def gravity():
         f = f06s.get("gravity")
         mass = None
         if f:
             g_blocks = [b for b in f.mass_blocks if b.mass]
             mass = g_blocks[0].mass[0] if g_blocks else None
-        results.append(C.check_gravity(f, mass, unit["g"], info.size, th, unit, spc_label))
-    if s.checks.get("thermal"):
-        results.append(_thermal(runs.get("thermal"), f06s.get("thermal"), model, mount, s, info,
-                                unit, lagran_bad, thermal_log, say))
-    if s.checks.get("mass_props"):
+        return C.check_gravity(f, mass, unit["g"], info.size, th, unit, spc_label)
+
+    def mass_props():
         f = f06s.get("freefree")
         block = None
         if f:
@@ -187,8 +202,30 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
             exc = next((b for b in f.excerpts.get("mass", [])
                         if any("SET = G" in x and "SET = G" == x.strip()[-7:] for x in b[:3])), None) \
                 or (f.excerpts.get("mass") or [None])[0]
-        results.append(C.check_mass_props(block, s.targets, s.units, unit, exc))
+        return C.check_mass_props(block, s.targets, s.units, unit, exc)
+
+    plan = [
+        ("model_summary", "Model summary", lambda: C.check_model_summary(info, mount, base, spc_label, real_label)),
+        ("freefree", "Free-free modes + GROUNDCHECK",
+         lambda: C.check_freefree(f06s.get("freefree"), th, s.autospc_freefree)),
+        ("constrained_modes", "Constrained modes",
+         lambda: C.check_constrained(f06s.get("constrained_modes"), real_label)),
+        ("unit_disp", "Unit enforced displacement / rotation",
+         lambda: _unit_disp(runs.get("unit_disp"), f06s.get("unit_disp"), model, mount, s, unit, say)),
+        ("gravity", "Unit gravity (OLOAD vs SPCFORCE)", gravity),
+        ("thermal", "Thermal soak (+1 deg, uniform CTE, kinematic mount)",
+         lambda: _thermal(runs.get("thermal"), f06s.get("thermal"), model, mount, s, info,
+                          unit, lagran_bad, thermal_log, say)),
+        ("mass_props", "Mass, CG and inertia vs targets", mass_props),
+    ]
+    for key, title, fn in plan:
+        if s.checks.get(key):
+            guard(key, title, fn)
     summary.checks = results
+    # Every verdict and its reason go to the log, so a run can be diagnosed from the log alone.
+    say("Results:")
+    for c in results:
+        say(f"  {c.status:7s} {c.title}: {c.summary}")
 
     # STEP 9: report ------------------------------------------------------------
     charts_dir = out / "charts"
@@ -260,7 +297,8 @@ def _unit_disp(run, f06, model, mount, s, unit, say):
     fields = R.displacements_basic(op2, model, {})
     peaks = {sc: R.element_force_peaks(op2, sc) for sc in range(1, 7)}
     return C.check_unit_disp(f06, fields, peaks, mount.xyz, set(mount.rotation_grids),
-                             s.thresholds, s.force_tol(), s.moment_tol(), unit)
+                             s.thresholds, s.force_tol(), s.moment_tol(), unit,
+                             mount.axes, mount.cd)
 
 
 def _thermal(run, f06, model, mount, s, info, unit, lagran_bad, thermal_log, say):
