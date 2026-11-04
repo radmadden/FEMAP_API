@@ -1,8 +1,9 @@
 # FEM Validation Checks: Design Description
 
-Tool: `fem_checks/` (Python package). Background and findings: `research-fem-checks.md`.
-Executable walkthrough: `fem_checks/fem_checks_design.ipynb`. References: `FEMCI-The-Book.pdf`
-(`femci ~line`) and `QRG.pdf` (`qrg ~line`).
+Tool: `fem_checks/` (Python package). Background and findings: `background.md` (this folder;
+cited below as "background §n"). Executable walkthrough: `fem_checks_design.ipynb`. References:
+`reference/FEMCI-The-Book.pdf` (`femci ~line`) and `reference/QRG.pdf` (`qrg ~line`). Reference
+model and outputs: `fem_checks/reference_model/`.
 
 ## 1. Scope
 
@@ -32,11 +33,11 @@ Executable walkthrough: `fem_checks/fem_checks_design.ipynb`. References: `FEMCI
 | D5 | **Constrained modes are report only (INFO),** with no frequency floor. | Gimbals legitimately have one or two near-zero bearing modes depending on whether the bearing rotations are locked; a floor would fail correct models. |
 | D6 | **Unit-displacement criteria,** all per subcase: (a) mount reaction ≤ 0.1 lbf / 1.0 in-lbf, converted to model units (femci ~1965); (b) displacement field equal to rigid-body motion within 1e-3; (c) element forces at element centroids within the same limits. CQUAD4 CORNER values above the limit are listed as INFO. | (a)+(b) detect any grounding. On the reference model, centroid forces are ≤ 1.6e-7 while CORNER (bilinear) values reach 33-82 lbf/in under a 1 rad rotation: a recovery artifact. GPFORCE is not requested (very large output; covered by (a)+(b)). |
 | D7 | **EPSILON:** FAIL when Nastran flags it (> 1e-3); otherwise reported. | Nastran's own threshold for ill-conditioning. |
-| D8 | **Thermal criteria** (research §6): displacement error ≤ 1e-3 relative to α·ΔT·(r − r_m); max von Mises / (E_max·α·ΔT) ≤ 1e-3. | Uniform α on a kinematic mount is exactly stress-free; relative criteria are unit-free. Replaces the Book's THDEF program. |
+| D8 | **Thermal criteria** (background §6): displacement error ≤ 1e-3 relative to α·ΔT·(r − r_m); max von Mises / (E_max·α·ΔT) ≤ 1e-3. | Uniform α on a kinematic mount is exactly stress-free; relative criteria are unit-free. Replaces the Book's THDEF program. |
 
 Other fixed choices:
 - GROUNDCHECK passes only if every requested set (G, N, N+AUTOSPC, F, A) prints PASS.
-- Gravity: OLOAD vs SPCFORCE and OLOAD vs m·g within 1e-4, using vector norms (research
+- Gravity: OLOAD vs SPCFORCE and OLOAD vs m·g within 1e-4, using vector norms (background
   §5.2).
 - PARAM,AUTOSPC in the free-free run is selectable (default YES, the QRG default). NO is
   stricter but can fail on singular DOF; the Book notes that AUTOSPC can cause a spurious
@@ -69,7 +70,7 @@ GUI fields, stored in `<output>/fem_checks.json`:
 1. **Settings.** Load from the GUI or JSON and validate: paths, unit system, mode counts,
    and that the real SPC set is given when constrained modes are selected.
 2. **Read the model** with `BDF(mode='nx')`, after stripping the FEMAP `ENDDATA` checksum.
-   Collect card and element counts, element quality (research §5.4), pyNastran mass
+   Collect card and element counts, element quality (background §5.4), pyNastran mass
    properties, E_max, and traceability data: TITLE, SUBTITLE, FEMAP model path and export
    date, and the leading `NASTRAN`/`INIT` statements.
 3. **Choose the mount grid.** A grid qualifies when it has rotational stiffness (shell,
@@ -167,7 +168,7 @@ Folder `<deck>_fem_checks\`:
 - The thermal check overwrites every CTE: it verifies model consistency, not material
   response.
 - Shell element forces are per unit length (D6).
-- Python 3.10-3.12 (research §4).
+- Python 3.10-3.12 (background §4).
 
 ## 8. Verification status
 
@@ -226,3 +227,4 @@ Operation:
 | A | Initial implementation. |
 | B | Report shows full data tables and verbatim .f06 excerpts with matched-value shading; check files named after the model; check decks carry title, subtitle and FEMAP provenance. |
 | C | Corrections from live runs: bulk data written in pyNastran bulk-only mode (pyNastran asserts on case-control lines longer than ~68 characters); `nastranw.exe` replaced by `nastran.exe`; time-stamped report when the PDF is locked; mount rule refers to permanent constraints only. |
+| D | Repository reorganized: package documents in `fem_checks/docs/`, reference model and outputs in `fem_checks/reference_model/`, reference PDFs in `reference/`; README files added. |

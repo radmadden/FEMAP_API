@@ -13,7 +13,7 @@ from fem_checks.f06 import parse_f06
 from fem_checks.settings import UNIT_SYSTEMS, MassTargets, Settings, Thresholds
 from fem_checks.tests.make_test_model import write_test_deck
 
-REPO = Path(__file__).resolve().parents[2]
+REF = Path(__file__).resolve().parents[1] / "reference_model"   # reference model + outputs
 
 
 @pytest.fixture()
@@ -111,19 +111,19 @@ def test_field_error_detects_grounding():
     assert err["t_err"] == pytest.approx(0.5) and err["worst_t"][0][0] == 3
 
 
-@pytest.mark.skipif(not (REPO / "freefree_check-0000.f06").exists(), reason="samples missing")
+@pytest.mark.skipif(not (REF / "freefree_check-0000.f06").exists(), reason="samples missing")
 def test_freefree_check_on_sample():
-    res = C.check_freefree(parse_f06(REPO / "freefree_check-0000.f06"), Thresholds(), True)
+    res = C.check_freefree(parse_f06(REF / "freefree_check-0000.f06"), Thresholds(), True)
     assert res.status == "PASS"
     assert res.data["ratio"] == pytest.approx(4.286750e-04 / 1.330038e02)
     assert "n_over_abs" not in res.data   # Book absolute limit not used (design decision D1)
     strict = Thresholds(rbm_ratio=1e-7)
-    assert C.check_freefree(parse_f06(REPO / "freefree_check-0000.f06"), strict, True).status == "FAIL"
+    assert C.check_freefree(parse_f06(REF / "freefree_check-0000.f06"), strict, True).status == "FAIL"
 
 
-@pytest.mark.skipif(not (REPO / "1g_unit_load_check-0000.f06").exists(), reason="samples missing")
+@pytest.mark.skipif(not (REF / "1g_unit_load_check-0000.f06").exists(), reason="samples missing")
 def test_gravity_check_on_sample():
-    f = parse_f06(REPO / "1g_unit_load_check-0000.f06")
+    f = parse_f06(REF / "1g_unit_load_check-0000.f06")
     u = UNIT_SYSTEMS["in-lbf-s"]
     # The sample was run with g = 386.1; the check must agree with OLOAD to 1e-4.
     res = C.check_gravity(f, 1.900295, 386.1, 30.0, Thresholds(), u, "test")
@@ -132,9 +132,9 @@ def test_gravity_check_on_sample():
     assert res_bad.status == "FAIL"  # 1% mass error is caught by the weight comparison
 
 
-@pytest.mark.skipif(not (REPO / "freefree_check-0000.f06").exists(), reason="samples missing")
+@pytest.mark.skipif(not (REF / "freefree_check-0000.f06").exists(), reason="samples missing")
 def test_mass_props_on_sample():
-    f = parse_f06(REPO / "freefree_check-0000.f06")
+    f = parse_f06(REF / "freefree_check-0000.f06")
     block = [b for b in f.mass_blocks if b.dof_set == "G"][0]
     u = UNIT_SYSTEMS["in-lbf-s"]
     t = MassTargets(mass=1.9, cg=[0.396, -4.433, None], inertia=[460.2, None, None, 5.385, None, None])
@@ -158,7 +158,7 @@ def test_settings_roundtrip(tmp_path):
     assert "Model deck not found" in " ".join(s2.validate(need_nastran=False))
 
 
-REAL_DECK = REPO / "1G_unit_load_check-0000.dat"
+REAL_DECK = REF / "1G_unit_load_check-0000.dat"
 
 
 @pytest.mark.skipif(not REAL_DECK.exists(), reason="reference model deck not in repo")

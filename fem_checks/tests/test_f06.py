@@ -1,4 +1,4 @@
-"""Parser tests against the reference Simcenter .f06 files in the repo root.
+"""Parser tests against the reference Simcenter .f06 files in fem_checks/reference_model.
 Expected numbers are copied from those files by hand."""
 from pathlib import Path
 
@@ -6,10 +6,10 @@ import pytest
 
 from fem_checks.f06 import parse_f06
 
-REPO = Path(__file__).resolve().parents[2]
-FREE = REPO / "freefree_check-0000.f06"
-UD = REPO / "ud_check-0000.f06"
-GRAV = REPO / "1g_unit_load_check-0000.f06"
+REF = Path(__file__).resolve().parents[1] / "reference_model"
+FREE = REF / "freefree_check-0000.f06"
+UD = REF / "ud_check-0000.f06"
+GRAV = REF / "1g_unit_load_check-0000.f06"
 
 need = pytest.mark.skipif(not (FREE.exists() and UD.exists() and GRAV.exists()),
                           reason="sample .f06 files not in repo")

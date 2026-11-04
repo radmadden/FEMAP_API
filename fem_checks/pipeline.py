@@ -1,6 +1,6 @@
 """The whole run, start to finish. The GUI and the command line both call run().
 
-Steps (plan-fem-checks.md, Algorithm):
+Steps (docs/design.md, Algorithm):
   1 settings -> 2 read model + summary -> 3 mount grid -> 4 write bulk data
   -> 5 write check decks -> 6 run Nastran -> 7 parse .f06/.op2 -> 8 evaluate
   -> 9 PDF report + results.json

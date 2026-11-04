@@ -233,7 +233,7 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
                        [2.6 * inch, 0.8 * inch, width - 3.4 * inch], status_col=1))
     story.append(Paragraph(
         "PASS/FAIL criteria follow FEMCI 'The Book' validity checks (femci ~1880) with the "
-        "design decisions in plan-fem-checks.md. INFO checks are report-only.", small))
+        "design decisions in fem_checks/docs/design.md. INFO checks are report-only.", small))
 
     for c in check_results:
         story.append(PageBreak())
@@ -281,6 +281,6 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
         story.append(Paragraph("No FATAL or WARNING messages.", body))
     story.append(Paragraph(f"Generated {_dt.datetime.now():%Y-%m-%d %H:%M} by fem_checks. "
                            "Untested in production until the first-run checklist in "
-                           "plan-fem-checks.md is complete.", small))
+                           "fem_checks/docs/design.md is complete.", small))
     doc.build(story)
     return Path(path)

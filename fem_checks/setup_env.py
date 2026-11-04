@@ -127,7 +127,7 @@ def write_vscode(repo: Path = REPO) -> None:
         "python.testing.pytestEnabled": True,
         "python.testing.unittestEnabled": False,
         "python.testing.pytestArgs": ["fem_checks/tests"],
-        "jupyter.notebookFileRoot": "${workspaceFolder}/fem_checks",
+        "jupyter.notebookFileRoot": "${workspaceFolder}/fem_checks/docs",
         # The Problems tab otherwise fills with Pylance type warnings about pyNastran.
         # Real errors still show.
         "python.analysis.typeCheckingMode": "off",
@@ -210,7 +210,7 @@ def verify() -> list[str]:
     except Exception as exc:
         problems.append(f"tkinter missing ({exc}): reinstall Python 3.12 with 'tcl/tk and IDLE' "
                         "ticked, or use the command line (python -m fem_checks settings.json).")
-    sample = REPO / "freefree_check-0000.f06"
+    sample = PKG / "reference_model" / "freefree_check-0000.f06"
     if sample.exists():
         try:
             from .f06 import parse_f06

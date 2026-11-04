@@ -50,7 +50,7 @@ class MassTargets:
       "cad"    -> Ixy = +integral(x*y dm)  (SolidWorks, NX, Creo style)
       "tensor" -> Ixy = -integral(x*y dm)  (inertia tensor style)
     Nastran's GPWG I(S) prints the "cad" form (derived from the sample .f06, see
-    research-fem-checks.md), so "tensor" targets get their products sign-flipped.
+    docs/background.md), so "tensor" targets get their products sign-flipped.
     """
     mass: Optional[float] = None
     cg: list = field(default_factory=lambda: [None, None, None])
@@ -70,7 +70,7 @@ class MassTargets:
 
 @dataclass
 class Thresholds:
-    """Pass/fail limits. Defaults follow the design decisions in plan-fem-checks.md."""
+    """Pass/fail limits. Defaults follow the design decisions in docs/design.md."""
     rbm_ratio: float = 1e-4          # max rigid-body freq / first elastic freq (FEMCI's
                                      # absolute 1e-4 Hz is not used: design decision D1)
     gravity_rel: float = 1e-4        # OLOAD vs SPCFORCE, and OLOAD vs mass*g

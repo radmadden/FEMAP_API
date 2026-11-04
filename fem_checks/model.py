@@ -26,7 +26,7 @@ from pyNastran.bdf.mesh_utils.mass_properties import mass_properties
 
 # Elements that give their grids rotational stiffness. A mount grid touching only
 # solids has no rotational stiffness, so the R1-R3 unit-rotation subcases would
-# "pass" without testing anything (research-fem-checks.md, "Mount grid trap").
+# "pass" without testing anything (docs/background.md, "Mount grid trap").
 ROTATIONAL_ELEMENTS = {"CQUAD4", "CQUAD8", "CQUADR", "CQUAD", "CTRIA3", "CTRIA6",
                        "CTRIAR", "CBAR", "CBEAM", "CBEND", "CBUSH"}
 

@@ -2,7 +2,7 @@
 with the check's own cards + INCLUDE of the shared model bulk data.
 
 Case-control syntax is from the Simcenter QRG (qrg ~line) and, where possible, copied
-from the reference decks in the repo root (freefree_check-0000.f06 case-control echo,
+from the reference decks in fem_checks/reference_model (freefree_check-0000.f06 case-control echo,
 UD_check-template.dat, 1G_check_template.dat).
 
 Reserved IDs (all offsets from ``base``, see model.reserved_base):
