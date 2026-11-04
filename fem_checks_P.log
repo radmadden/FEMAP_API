@@ -1,0 +1,63 @@
+08:51:01 Output folder: D:\IRAD\Scratch runs\POMA static fem checks
+08:51:01 Reading model D:/IRAD/Scratch runs/POMA static fem checks/test_fem.dat ...
+08:57:40   219647 grids, 177671 elements, pyNastran mass 497.339
+08:57:41 STOPPED: ValueError: No grid qualifies as a kinematic mount (needs rotational stiffness, not dependent, no SPC, CD=0). Enter one by hand.
+Traceback (most recent call last):
+  File "D:\FEMAP_API\fem_checks\pipeline.py", line 73, in run
+    return _run(settings, out, summary, say, run_solver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\FEMAP_API\fem_checks\pipeline.py", line 98, in _run
+    mount = M.choose_mount(model, info, s.mount_grid)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\FEMAP_API\fem_checks\model.py", line 384, in choose_mount
+    raise ValueError("No grid qualifies as a kinematic mount (needs rotational "
+ValueError: No grid qualifies as a kinematic mount (needs rotational stiffness, not dependent, no SPC, CD=0). Enter one by hand.
+09:48:07 Output folder: D:\IRAD\Scratch runs\POMA static fem checks
+09:48:07 Reading model D:/IRAD/Scratch runs/POMA static fem checks/test_fem.dat ...
+09:55:02   219647 grids, 177671 elements, pyNastran mass 497.339
+09:55:02 STOPPED: ValueError: Mount grid rejected: grid 1000001 has output coordinate system CD=3; the mount must use CD=0 so SPCD directions are basic X/Y/Z
+Traceback (most recent call last):
+  File "D:\FEMAP_API\fem_checks\pipeline.py", line 73, in run
+    return _run(settings, out, summary, say, run_solver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\FEMAP_API\fem_checks\pipeline.py", line 98, in _run
+    mount = M.choose_mount(model, info, s.mount_grid)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\FEMAP_API\fem_checks\model.py", line 378, in choose_mount
+    raise ValueError("Mount grid rejected: " + "; ".join(problems))
+ValueError: Mount grid rejected: grid 1000001 has output coordinate system CD=3; the mount must use CD=0 so SPCD directions are basic X/Y/Z
+09:56:35 Output folder: D:\IRAD\Scratch runs\POMA static fem checks
+09:56:35 Reading model D:/IRAD/Scratch runs/POMA static fem checks/test_fem.dat ...
+10:03:30   219647 grids, 177671 elements, pyNastran mass 497.339
+10:03:30 Mount grid 1000001 (entered), 117.3 from CG (22.3% of model size)
+10:03:35 Wrote test_fem_bulk.bdf (large-field, model PARAMs AUTOSPC/GRDPNT/POST removed)
+10:03:49   thermal: uniform CTE = 1e-05, TREF = 0 set on: 6 MAT1, 327 RBE2, 305 RBE3
+10:03:49 Wrote decks: 01_test_fem_freefree.dat, 02_test_fem_constrained_modes.dat, 03_test_fem_unit_disp.dat, 04_test_fem_gravity.dat, 05_test_fem_thermal.dat
+10:03:49 Nastran: 01_test_fem_freefree.dat
+10:03:49   running: C:/Program Files/Siemens/Simcenter3D_2306/NXNASTRAN/bin/nastran.exe 01_test_fem_freefree.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\POMA static fem checks)
+10:05:08   done in 79 s
+10:05:08 Nastran: 02_test_fem_constrained_modes.dat
+10:05:08   running: C:/Program Files/Siemens/Simcenter3D_2306/NXNASTRAN/bin/nastran.exe 02_test_fem_constrained_modes.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\POMA static fem checks)
+10:06:22   done in 74 s
+10:06:22 Nastran: 03_test_fem_unit_disp.dat
+10:06:22   running: C:/Program Files/Siemens/Simcenter3D_2306/NXNASTRAN/bin/nastran.exe 03_test_fem_unit_disp.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\POMA static fem checks)
+10:07:01   done in 40 s
+10:07:01 Nastran: 04_test_fem_gravity.dat
+10:07:01   running: C:/Program Files/Siemens/Simcenter3D_2306/NXNASTRAN/bin/nastran.exe 04_test_fem_gravity.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\POMA static fem checks)
+10:07:48   done in 47 s
+10:07:48 Nastran: 05_test_fem_thermal.dat
+10:07:48   running: C:/Program Files/Siemens/Simcenter3D_2306/NXNASTRAN/bin/nastran.exe 05_test_fem_thermal.dat scr=yes old=no batch=no  (in D:\IRAD\Scratch runs\POMA static fem checks)
+10:08:37   done in 49 s
+10:08:37 Reading unit-displacement OP2 ...
+10:08:38 Reading thermal OP2 ...
+10:08:42 Overall: ERROR. Report: D:\IRAD\Scratch runs\POMA static fem checks\fem_checks_report.pdf
+11:22:15 Output folder: D:\IRAD\Scratch runs\POMA static fem checks
+11:22:15 Reading model D:/IRAD/Scratch runs/POMA static fem checks/test_fem.dat ...
+11:29:01   219647 grids, 177671 elements, pyNastran mass 497.339
+11:29:01 Mount grid 1000001 (entered), 117.3 from CG (22.3% of model size)
+11:29:05 Wrote test_fem_bulk.bdf (large-field, model PARAMs AUTOSPC/GRDPNT/POST removed)
+11:29:18   thermal: uniform CTE = 1e-05, TREF = 0 set on: 6 MAT1, 327 RBE2, 305 RBE3
+11:29:18 Wrote decks: 01_test_fem_freefree.dat, 02_test_fem_constrained_modes.dat, 03_test_fem_unit_disp.dat, 04_test_fem_gravity.dat, 05_test_fem_thermal.dat
+11:29:18 Reading unit-displacement OP2 ...
+11:29:18 Reading thermal OP2 ...
+11:29:23 Overall: ERROR. Report: D:\IRAD\Scratch runs\POMA static fem checks\fem_checks_report.pdf
