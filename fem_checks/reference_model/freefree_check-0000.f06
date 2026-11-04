@@ -1,0 +1,1792 @@
+1
+ 
+ 
+ 
+ 
+                                                             
+                    Unpublished Work. © 2025 Siemens        
+                         All Rights Reserved.                
+                                                             
+               This software and related documentation are   
+                    proprietary to Siemens Industry          
+                             Software Inc.                   
+                                                             
+              Siemens and the Siemens logo are registered    
+             trademarks of Siemens Trademark GmbH & Co. KG.  
+            Simcenter is a trademark, or registered trademark
+                of Siemens Industry Software Inc. or its     
+             subsidiaries in the United States and in other  
+             countries.  Simcenter NASTRAN is a registered   
+               trademark of Siemens Industry Software Inc.   
+            All other trademarks, registered trademarks or   
+               service marks belong to their respective      
+                        holders.                             
+                                                             
+           LIMITATIONS TO U.S. GOVERNMENT RIGHTS. UNPUBLISHED
+           - RIGHTS RESERVED UNDER THE COPYRIGHT LAWS OF THE 
+            UNITED STATES. This computer software and related
+               computer software documentation have been     
+            developed exclusively at private expense and are 
+           provided subject to the following rights:  If this
+               computer software and computer  software      
+            documentation qualify as "commercial items" (as  
+             that term is defined in FAR 2.101), their use,  
+            duplication or disclosure by the U.S. Government 
+           is subject to the protections and restrictions as 
+            set forth in the Siemens commercial license for  
+            software and/or documentation, as prescribed in  
+           FAR 12.212 and FAR 27.405(b)(2)(i) (for civilian  
+             agencies) and in DFARS 227.7202-1(a) and DFARS  
+           227.7202-3(a) (for the Department of Defense), or 
+           any successor or similar regulation, as applicable
+           or as amended from time to time.  If this computer
+           software and computer documentation do not qualify
+            as "commercial items", then they are "restricted 
+           computer software" and are provided with "restric-
+            tive rights", and their use, duplication or dis- 
+            closure by the U.S. Government is subject to the 
+            protections and restrictions as set forth in FAR 
+           27.404(b) and FAR 52-227-14 (for civilian agencies
+           ), and DFARS 227.7203-5(c) and DFARS 252.227-7014 
+           (for the Department of Defense), or any successor 
+           or similar regulation, as applicable or as amended
+           from time to time. Siemens Industry Software Inc. 
+           5800 Granite Parkway, Suite 600, Plano, TX 75024  
+ 
+
+                * * * * * * * * * * * * * * * * * * * *
+                * * * * * * * * * * * * * * * * * * * *
+                * *                                 * *
+                * *                                 * *
+                * *                                 * *
+                * *                                 * *
+                * *     Simcenter Nastran 2512      * *
+                * *                                 * *
+                * *       VERSION - 2512.0095       * *
+                * *                                 * *
+                * *          OCT 17, 2025           * *
+                * *                                 * *
+                * *                                 * *
+                * *Intel64 Family 6 Model 141 Stepp * *
+                * *                                 * *
+                * *MODEL 11th Gen Intel(R) Core(TM) * *
+                * *                                 * *
+                * *           Windows 10            * *
+                * *                                 * *
+                * *       Compiled for X86-64       * *
+                * *                                 * *
+                * * * * * * * * * * * * * * * * * * * *
+                * * * * * * * * * * * * * * * * * * * *
+1 
+  
+                      Welcome to Simcenter Nastran
+                      ----------------------------
+  
+  
+ This "news" information can be turned off by setting "news=no" in the runtime
+ configuration (RC) file.  The "news" keyword can be set in the system RC file
+ for global, or multi-user control, and in a local file for local control.
+ Individual jobs can be controlled by setting news to yes or no on the command
+ line.
+1                                                                          NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE     1
+                                                                                                                                    
+0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     NASTRAN BUFFSIZE=32769 $(C:/PROGRAM FILES/SIEMENS/FEMAP 2512/NASTRAN/CONF/NASTRA
+     NASTRAN BUFFPOOL=23291                                                          
+     NASTRAN DIAGA=128 DIAGB=0 $(C:/PROGRAM FILES/SIEMENS/FEMAP 2512/NASTRAN/CONF/NAS
+     NASTRAN REAL=8481538048 $(MEMORY LIMIT FOR MPI AND OTHER SPECIALIZED MODULES)   
+     INIT MASTER(S)                                                                  
+     NASTRAN SYSTEM(442)=-1,SYSTEM(319)=1                                            
+1                                                                          NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE     2
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H O                                                             
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     ID BD,FEMAP                                                                             
+     SOL SEMODES                                                                             
+     CEND                                                                                    
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE     3
+                                                                                                                                    
+0                                                                                                                                   
+0                                        C A S E    C O N T R O L    E C H O                                                        
+                 COMMAND                                                                                                            
+                 COUNT                                                                                                              
+                  1        TITLE = FREE FREE MODES                                                               
+                  2        ECHO = NONE                                                                           
+                  3        GROUNDCHECK(PRINT,SET=(G,N,N+AUTOSPC,F,A),                                            
+                  4          DATAREC=NO)=YES                                                                     
+                  5        WEIGHTCHECK(PRINT,SET=(G,N,N+AUTOSPC,F,A,V),                                          
+                  6          CGI=YES,MASS)=YES                                                                   
+                  7        DISPLACEMENT(PLOT) = ALL                                                              
+                  8        SPCFORCE(PLOT) = ALL                                                                  
+                  9        ESE(PLOT) = ALL                                                                       
+                 10        METHOD = 1                                                                            
+                 11        MEFFMASS(PLOT,PRINT,GRID=0,PARTFAC,MEFFM,MEFFW,FRACSUM,SUMMARY) = YES                 
+                 12      BEGIN BULK                                                                              
+0                             INPUT BULK DATA ENTRY COUNT =       50982
+0                       TOTAL COUNT=     50924
+
+
+                                        M O D E L   S U M M A R Y
+
+                                   NUMBER OF GRID     POINTS   =    24851
+ 
+ 
+                                   NUMBER OF CBEAM    ELEMENTS =       17
+                                   NUMBER OF CBUSH    ELEMENTS =        3
+                                   NUMBER OF CHEXA    ELEMENTS =     8856
+                                   NUMBER OF CONM2    ELEMENTS =        7
+                                   NUMBER OF CPENTA   ELEMENTS =      128
+                                   NUMBER OF CQUAD4   ELEMENTS =     7620
+                                   NUMBER OF CTRIA3   ELEMENTS =        8
+ 
+                                   NUMBER OF RBE2     ELEMENTS =       16
+                                   NUMBER OF RBE3     ELEMENTS =        2
+ *** USER INFORMATION MESSAGE 4109 (OUTPBN2)
+     THE LABEL IS NX2512   FOR FORTRAN UNIT 12
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =        7 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =        8 RECORDS.)
+     (TOTAL DATA WRITTEN FOR TAPE LABEL =       17 WORDS.)
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE     4
+                                                                                                                                    
+0                                                                                                                                   
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK PVT0     WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                27                 0                 0                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =       27 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       19 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =       53 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK CASECC   WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                 1                 0              1200                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =     1200 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       19 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =     1226 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK EQEXINS  WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101             24851                 0                 0                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =    49702 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       24 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =    99434 WORDS.)
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE     5
+                                                                                                                                    
+0                                                                                                                                   
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+ *** USER INFORMATION MESSAGE 7570 (GPWG1S)
+     RESULTS OF RIGID BODY CHECKS OF MATRIX KGG      (G-SET)  FOLLOW:
+     PRINT RESULTS IN ALL SIX DIRECTIONS AGAINST THE LIMIT OF   2.337077E+00
+           DIRECTION        STRAIN ENERGY        PASS/FAIL
+           ---------        -------------        ---------
+             1               6.345442E-08          PASS
+             2               2.230481E-07          PASS
+             3               1.986094E-07          PASS
+             4               1.209146E-04          PASS
+             5               1.039902E-05          PASS
+             6               1.005740E-04          PASS
+     SOME POSSIBLE REASONS MAY LEAD TO THE FAILURE:
+       1. CELASI ELEMENTS CONNECTING TO ONLY ONE GRID POINT;
+       2. CELASI ELEMENTS CONNECTING TO NON-COINCIDENT POINTS;
+       3. CELASI ELEMENTS CONNECTING TO NON-COLLINEAR DOF;
+       4. IMPROPERLY DEFINED DMIG MATRICES;
+ 
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE     6
+                                                                                                                                    
+0                                                                                                                                   
+0 RESULTANTS ABOUT ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM IN SUPERELEMENT BASIC SYSTEM COORDINATES.
+
+0                                                  OLOAD    RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0        1     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00                             
+ ^^^ USER INFORMATION MESSAGE (XMCE1)    
+ ^^^ USING ALTERNATE MULTIPOINT CONSTRAINT ELIMINATION   
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE     7
+                                                                                                                                    
+0                                                                                                                                   
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+ *** USER INFORMATION MESSAGE 7570 (GPWG1S)
+     RESULTS OF RIGID BODY CHECKS OF MATRIX KNN      (N-SET)  FOLLOW:
+     PRINT RESULTS IN ALL SIX DIRECTIONS AGAINST THE LIMIT OF   1.177637E+01
+           DIRECTION        STRAIN ENERGY        PASS/FAIL
+           ---------        -------------        ---------
+             1               2.809296E-06          PASS
+             2               8.486907E-07          PASS
+             3               3.952134E-06          PASS
+             4               6.418292E-04          PASS
+             5               8.021127E-05          PASS
+             6               1.026385E-03          PASS
+     SOME POSSIBLE REASONS MAY LEAD TO THE FAILURE:
+       1. MULTIPOINT CONSTRAINT EQUATIONS WHICH DO NOT SATISFY RIGID-BODY MOTION;
+       2. RBE3 ELEMENTS FOR WHICH THE INDEPENDENT DEGREE-OF-FREEDOM CANNOT DESCRIBE
+          ALL POSSIBLE RIGID-BODY MOTIONS.
+ 
+ *** USER INFORMATION MESSAGE - SINGULARITIES FOUND USING EIGENVALUE METHOD
+ ***   51879 SINGULARITIES FOUND     51879 SINGULARITIES ELIMINATED
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE     8
+                                                                                                                                    
+0                                                                                                                                   
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+ *** USER INFORMATION MESSAGE 7570 (GPWG1S)
+     RESULTS OF RIGID BODY CHECKS OF MATRIX KNN+AUTO (N+AUTOSPC-SET)  FOLLOW:
+     PRINT RESULTS IN ALL SIX DIRECTIONS AGAINST THE LIMIT OF   1.177637E+01
+           DIRECTION        STRAIN ENERGY        PASS/FAIL
+           ---------        -------------        ---------
+             1               2.809296E-06          PASS
+             2               8.486907E-07          PASS
+             3               3.952134E-06          PASS
+             4               6.418292E-04          PASS
+             5               8.021127E-05          PASS
+             6               1.026385E-03          PASS
+     SOME POSSIBLE REASONS MAY LEAD TO THE FAILURE:
+       1. MPC EQUATIONS WHICH DO NOT SATISFY RIGID-BODY MOTION;
+       2. RBE3 ELEMENTS FOR WHICH THE INDEPENDENT DOF CANNOT DESCRIBE ALL POSSIBLE
+          RIGID-BODY MOTIONS;
+       3. PARAM,AUTOSPC HAS OVER-CONSTRAINED THE MODEL.
+ 
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE     9
+                                                                                                                                    
+0                                                                                                                                   
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+ *** USER INFORMATION MESSAGE 7570 (GPWG1S)
+     RESULTS OF RIGID BODY CHECKS OF MATRIX KFF      (F-SET)  FOLLOW:
+     PRINT RESULTS IN ALL SIX DIRECTIONS AGAINST THE LIMIT OF   1.177637E+01
+           DIRECTION        STRAIN ENERGY        PASS/FAIL
+           ---------        -------------        ---------
+             1               2.809296E-06          PASS
+             2               8.486907E-07          PASS
+             3               3.952134E-06          PASS
+             4               6.418292E-04          PASS
+             5               8.021127E-05          PASS
+             6               1.026385E-03          PASS
+     SOME POSSIBLE REASONS MAY LEAD TO THE FAILURE:
+       1. CONSTRAINTS WHICH PREVENT RIGID-BODY MOTION.
+ 
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    10
+                                                                                                                                    
+0                                                                                                                                   
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+ *** USER INFORMATION MESSAGE 7570 (GPWG1S)
+     RESULTS OF RIGID BODY CHECKS OF MATRIX KAA1     (A-SET)  FOLLOW:
+     PRINT RESULTS IN ALL SIX DIRECTIONS AGAINST THE LIMIT OF   1.177637E+01
+           DIRECTION        STRAIN ENERGY        PASS/FAIL
+           ---------        -------------        ---------
+             1               2.809296E-06          PASS
+             2               8.486907E-07          PASS
+             3               3.952134E-06          PASS
+             4               6.418292E-04          PASS
+             5               8.021127E-05          PASS
+             6               1.026385E-03          PASS
+     SOME POSSIBLE REASONS MAY LEAD TO THE FAILURE:
+     IF THE MODEL HAS PASSED THE PREVIOUS CHECKS FOR THE G-SET AND N-SET,
+     THEN:
+       1. THE MODEL IS NOT INTENDED TO BE FREE-FREE WHICH INDICATES THAT THE MODEL IS
+          PROPERLY CONSTRAINED TO GROUND;
+       2. THE REFERENCE GRID POINT (GRID=GID ON THE GROUNDCHECK COMMAND) IS LOCATED
+          TOO FAR FROM THE MODEL'S CENTER OF GRAVITY. IT IS RECOMMENDED THAT THE
+          REFERENCE GRID POINT BE LOCATED AS CLOSE AS POSSIBLE TO THE MODEL'S CENTER
+          OF GRAVITY OF THE MODEL (SEE THE GRID POINT WEIGHT GENERATOR OUTPUT);
+       3. PARAM,AUTOSPC,YES CONSTRAINS NEAR-SINGULAR DEGREES-OF-FREEDOM. WHEN A
+          FINITE ELEMENT MODEL WITH AUTOSPC FAILS THE A-SET CHECK, IT IS NOT EVIDENT
+          THAT GROUNDING HAS OCCURRED. THE USE OF PARAM,SNORM WILL NOT ELIMINATE THE
+          SPURIOUS FAILURE.
+ 
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    11
+                                                                                                                                    
+0                                                                                                                                   
+                                           O U T P U T   F R O M   W E I G H T   C H E C K
+0                                                     DEGREES OF FREEDOM SET = G       
+0                                                     REFERENCE POINT =        0
+                                                                M O
+                      *  1.900295E+00  0.000000E+00  2.151233E-18 -4.751707E-17  1.370654E-05  8.423426E+00 *
+                      *  0.000000E+00  1.900295E+00  0.000000E+00 -1.370654E-05  0.000000E+00  7.526419E-01 *
+                      *  2.151233E-18  0.000000E+00  1.900295E+00 -8.423426E+00 -7.526419E-01  4.751707E-17 *
+                      * -4.751707E-17 -1.370654E-05 -8.423426E+00  4.975391E+02 -2.048988E+00 -3.019669E-05 *
+                      *  1.370654E-05  0.000000E+00 -7.526419E-01 -2.048988E+00  3.894565E+02  2.717360E-04 *
+                      *  8.423426E+00  7.526419E-01  4.751707E-17 -3.019669E-05  2.717360E-04  4.250334E+02 *
+                                                                 S
+                                           *  1.000000E+00  0.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  1.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+                               DIRECTION
+                          MASS AXIS SYSTEM (S)     MASS              X-C.G.        Y-C.G.        Z-C.G.
+                                  X            1.900295E+00     -2.500511E-17 -4.432694E+00  7.212851E-06
+                                  Y            1.900295E+00      3.960659E-01  0.000000E+00  7.212851E-06
+                                  Z            1.900295E+00      3.960659E-01 -4.432694E+00  2.500511E-17
+                                                                I(S)
+                                           *  4.602007E+02  5.385219E+00  2.476800E-05 *
+                                           *  5.385219E+00  3.891584E+02 -2.109791E-04 *
+                                           *  2.476800E-05 -2.109791E-04  3.873969E+02 *
+                                                                I(Q)
+                                           *  4.606066E+02                             *
+                                           *                3.887526E+02               *
+                                           *                              3.873969E+02 *
+                                                                 Q
+                                           *  9.971715E-01  7.515926E-02  0.000000E+00 *
+                                           * -7.515926E-02  9.971715E-01  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    12
+                                                                                                                                    
+0                                                                                                                                   
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    13
+                                                                                                                                    
+0                                                                                                                                   
+                                           O U T P U T   F R O M   W E I G H T   C H E C K
+0                                                     DEGREES OF FREEDOM SET = N       
+0                                                     REFERENCE POINT =        0
+                                                                M O
+                      *  1.900295E+00  0.000000E+00  2.151233E-18 -4.751707E-17  1.370654E-05  8.423426E+00 *
+                      *  0.000000E+00  1.900295E+00  0.000000E+00 -1.370654E-05  0.000000E+00  7.526419E-01 *
+                      *  2.151233E-18  0.000000E+00  1.900295E+00 -8.423426E+00 -7.526419E-01  4.751707E-17 *
+                      * -4.751707E-17 -1.370654E-05 -8.423426E+00  4.975391E+02 -2.048988E+00 -3.019669E-05 *
+                      *  1.370654E-05  0.000000E+00 -7.526419E-01 -2.048988E+00  3.894565E+02  2.717360E-04 *
+                      *  8.423426E+00  7.526419E-01  4.751707E-17 -3.019669E-05  2.717360E-04  4.250334E+02 *
+
+0                                    CHANGE WITH RESPECT TO G-SET RIGID BODY MASS/WEIGHT
+                      *       0 %                                                                           *
+                      *                     0 %                                                             *
+                      *                                   0 %                                               *
+                      *                                                 0 %                                 *
+                      *                                                               0 %                   *
+                      *                                                                             0 %     *
+                                                                 S
+                                           *  1.000000E+00  0.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  1.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+                               DIRECTION
+                          MASS AXIS SYSTEM (S)     MASS              X-C.G.        Y-C.G.        Z-C.G.
+                                  X            1.900295E+00     -2.500511E-17 -4.432694E+00  7.212851E-06
+                                  Y            1.900295E+00      3.960659E-01  0.000000E+00  7.212851E-06
+                                  Z            1.900295E+00      3.960659E-01 -4.432694E+00  2.500511E-17
+                                                                I(S)
+                                           *  4.602007E+02  5.385219E+00  2.476800E-05 *
+                                           *  5.385219E+00  3.891584E+02 -2.109791E-04 *
+                                           *  2.476800E-05 -2.109791E-04  3.873969E+02 *
+                                                                I(Q)
+                                           *  4.606066E+02                             *
+                                           *                3.887526E+02               *
+                                           *                              3.873969E+02 *
+                                                                 Q
+                                           *  9.971715E-01  7.515926E-02  0.000000E+00 *
+                                           * -7.515926E-02  9.971715E-01  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    14
+                                                                                                                                    
+0                                                                                                                                   
+ *** USER WARNING MESSAGE 2125 (VEC)
+     MODULE VEC - NZ=0, ONE OR MORE COLUMNS OF OUTPUT MATRIX WILL BE NULL.
+     User information:
+     Requested partitioning vector is full.
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    15
+                                                                                                                                    
+0                                                                                                                                   
+                                           O U T P U T   F R O M   W E I G H T   C H E C K
+0                                                     DEGREES OF FREEDOM SET = N+AUTO  
+0                                                     REFERENCE POINT =        0
+                                                                M O
+                      *  1.900295E+00  0.000000E+00  2.151233E-18 -4.751707E-17  1.370654E-05  8.423426E+00 *
+                      *  0.000000E+00  1.900295E+00  0.000000E+00 -1.370654E-05  0.000000E+00  7.526419E-01 *
+                      *  2.151233E-18  0.000000E+00  1.900295E+00 -8.423426E+00 -7.526419E-01  4.751707E-17 *
+                      * -4.751707E-17 -1.370654E-05 -8.423426E+00  4.975391E+02 -2.048988E+00 -3.019669E-05 *
+                      *  1.370654E-05  0.000000E+00 -7.526419E-01 -2.048988E+00  3.894565E+02  2.717360E-04 *
+                      *  8.423426E+00  7.526419E-01  4.751707E-17 -3.019669E-05  2.717360E-04  4.250334E+02 *
+
+0                                    CHANGE WITH RESPECT TO G-SET RIGID BODY MASS/WEIGHT
+                      *       0 %                                                                           *
+                      *                     0 %                                                             *
+                      *                                   0 %                                               *
+                      *                                                 0 %                                 *
+                      *                                                               0 %                   *
+                      *                                                                             0 %     *
+                                                                 S
+                                           *  1.000000E+00  0.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  1.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+                               DIRECTION
+                          MASS AXIS SYSTEM (S)     MASS              X-C.G.        Y-C.G.        Z-C.G.
+                                  X            1.900295E+00     -2.500511E-17 -4.432694E+00  7.212851E-06
+                                  Y            1.900295E+00      3.960659E-01  0.000000E+00  7.212851E-06
+                                  Z            1.900295E+00      3.960659E-01 -4.432694E+00  2.500511E-17
+                                                                I(S)
+                                           *  4.602007E+02  5.385219E+00  2.476800E-05 *
+                                           *  5.385219E+00  3.891584E+02 -2.109791E-04 *
+                                           *  2.476800E-05 -2.109791E-04  3.873969E+02 *
+                                                                I(Q)
+                                           *  4.606066E+02                             *
+                                           *                3.887526E+02               *
+                                           *                              3.873969E+02 *
+                                                                 Q
+                                           *  9.971715E-01  7.515926E-02  0.000000E+00 *
+                                           * -7.515926E-02  9.971715E-01  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    16
+                                                                                                                                    
+0                                                                                                                                   
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    17
+                                                                                                                                    
+0                                                                                                                                   
+                                           O U T P U T   F R O M   W E I G H T   C H E C K
+0                                                     DEGREES OF FREEDOM SET = F       
+0                                                     REFERENCE POINT =        0
+                                                                M O
+                      *  1.900295E+00  0.000000E+00  2.151233E-18 -4.751707E-17  1.370654E-05  8.423426E+00 *
+                      *  0.000000E+00  1.900295E+00  0.000000E+00 -1.370654E-05  0.000000E+00  7.526419E-01 *
+                      *  2.151233E-18  0.000000E+00  1.900295E+00 -8.423426E+00 -7.526419E-01  4.751707E-17 *
+                      * -4.751707E-17 -1.370654E-05 -8.423426E+00  4.975391E+02 -2.048988E+00 -3.019669E-05 *
+                      *  1.370654E-05  0.000000E+00 -7.526419E-01 -2.048988E+00  3.894565E+02  2.717360E-04 *
+                      *  8.423426E+00  7.526419E-01  4.751707E-17 -3.019669E-05  2.717360E-04  4.250334E+02 *
+
+0                                    CHANGE WITH RESPECT TO G-SET RIGID BODY MASS/WEIGHT
+                      *       0 %                                                                           *
+                      *                     0 %                                                             *
+                      *                                   0 %                                               *
+                      *                                                 0 %                                 *
+                      *                                                               0 %                   *
+                      *                                                                             0 %     *
+                                                                 S
+                                           *  1.000000E+00  0.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  1.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+                               DIRECTION
+                          MASS AXIS SYSTEM (S)     MASS              X-C.G.        Y-C.G.        Z-C.G.
+                                  X            1.900295E+00     -2.500511E-17 -4.432694E+00  7.212851E-06
+                                  Y            1.900295E+00      3.960659E-01  0.000000E+00  7.212851E-06
+                                  Z            1.900295E+00      3.960659E-01 -4.432694E+00  2.500511E-17
+                                                                I(S)
+                                           *  4.602007E+02  5.385219E+00  2.476800E-05 *
+                                           *  5.385219E+00  3.891584E+02 -2.109791E-04 *
+                                           *  2.476800E-05 -2.109791E-04  3.873969E+02 *
+                                                                I(Q)
+                                           *  4.606066E+02                             *
+                                           *                3.887526E+02               *
+                                           *                              3.873969E+02 *
+                                                                 Q
+                                           *  9.971715E-01  7.515926E-02  0.000000E+00 *
+                                           * -7.515926E-02  9.971715E-01  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    18
+                                                                                                                                    
+0                                                                                                                                   
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    19
+                                                                                                                                    
+0                                                                                                                                   
+                                           O U T P U T   F R O M   W E I G H T   C H E C K
+0                                                     DEGREES OF FREEDOM SET = A       
+0                                                     REFERENCE POINT =        0
+                                                                M O
+                      *  1.900295E+00  0.000000E+00  2.151233E-18 -4.751707E-17  1.370654E-05  8.423426E+00 *
+                      *  0.000000E+00  1.900295E+00  0.000000E+00 -1.370654E-05  0.000000E+00  7.526419E-01 *
+                      *  2.151233E-18  0.000000E+00  1.900295E+00 -8.423426E+00 -7.526419E-01  4.751707E-17 *
+                      * -4.751707E-17 -1.370654E-05 -8.423426E+00  4.975391E+02 -2.048988E+00 -3.019669E-05 *
+                      *  1.370654E-05  0.000000E+00 -7.526419E-01 -2.048988E+00  3.894565E+02  2.717360E-04 *
+                      *  8.423426E+00  7.526419E-01  4.751707E-17 -3.019669E-05  2.717360E-04  4.250334E+02 *
+
+0                                    CHANGE WITH RESPECT TO G-SET RIGID BODY MASS/WEIGHT
+                      *       0 %                                                                           *
+                      *                     0 %                                                             *
+                      *                                   0 %                                               *
+                      *                                                 0 %                                 *
+                      *                                                               0 %                   *
+                      *                                                                             0 %     *
+                                                                 S
+                                           *  1.000000E+00  0.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  1.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+                               DIRECTION
+                          MASS AXIS SYSTEM (S)     MASS              X-C.G.        Y-C.G.        Z-C.G.
+                                  X            1.900295E+00     -2.500511E-17 -4.432694E+00  7.212851E-06
+                                  Y            1.900295E+00      3.960659E-01  0.000000E+00  7.212851E-06
+                                  Z            1.900295E+00      3.960659E-01 -4.432694E+00  2.500511E-17
+                                                                I(S)
+                                           *  4.602007E+02  5.385219E+00  2.476800E-05 *
+                                           *  5.385219E+00  3.891584E+02 -2.109791E-04 *
+                                           *  2.476800E-05 -2.109791E-04  3.873969E+02 *
+                                                                I(Q)
+                                           *  4.606066E+02                             *
+                                           *                3.887526E+02               *
+                                           *                              3.873969E+02 *
+                                                                 Q
+                                           *  9.971715E-01  7.515926E-02  0.000000E+00 *
+                                           * -7.515926E-02  9.971715E-01  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    20
+                                                                                                                                    
+0                                                                                                                                   
+   ... Loading Local Library libdMumps_nompi_ilp64.dll. 
+
+ *** USER INFORMATION MESSAGE 5010 (LNCILS)
+     STURM SEQUENCE DATA FOR EIGENVALUE EXTRACTION.
+     TRIAL EIGENVALUE =  3.240602E+03, CYCLES =  9.060100E+00 NUMBER OF EIGENVALUES BELOW THIS VALUE =     6
+     User information:
+     This message is automatically generated during eigenvalue extraction.  This
+     information is important in establishing the number of roots existing in
+     certain subregions of the frequency region. See the NASTRAN Numerical Methods
+     User's Guide.
+ *** USER INFORMATION MESSAGE 5010 (LNCILS)
+     STURM SEQUENCE DATA FOR EIGENVALUE EXTRACTION.
+     TRIAL EIGENVALUE =  6.636686E+06, CYCLES =  4.100113E+02 NUMBER OF EIGENVALUES BELOW THIS VALUE =    20
+     User information:
+     This message is automatically generated during eigenvalue extraction.  This
+     information is important in establishing the number of roots existing in
+     certain subregions of the frequency region. See the NASTRAN Numerical Methods
+     User's Guide.
+
+ TABLE OF SHIFTS:  (LNNRIGL)
+ SHIFT #        SHIFT VALUE         FREQUENCY, CYCLES     # EIGENVALUES BELOW    # NEW EIGENVALUES FOUND
+     1.        3.2406023E+03          9.0601001E+00                 6                       20
+     2.        6.6366863E+06          4.1001125E+02                20                        0
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    21
+                                                                                                                                    
+0                                                                                                                                   
+0
+
+
+                          E I G E N V A L U E  A N A L Y S I S   S U M M A R Y   (READ MODULE) 
+
+
+
+                                     BLOCK SIZE USED ......................    7
+
+                                     NUMBER OF DECOMPOSITIONS .............    2
+
+                                     NUMBER OF ROOTS FOUND ................   20
+
+                                     NUMBER OF SOLVES REQUIRED ............   16
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    22
+                                                                                                                                    
+0                                                                                                                                   
+ 
+                                              R E A L   E I G E N V A L U E S
+   MODE    EXTRACTION      EIGENVALUE            RADIANS             CYCLES            GENERALIZED         GENERALIZED
+    NO.       ORDER                                                                       MASS              STIFFNESS
+        1         1       -7.254643E-06        2.693444E-03        4.286750E-04        1.000000E+00       -7.254643E-06
+        2         2       -6.653675E-06        2.579472E-03        4.105357E-04        1.000000E+00       -6.653675E-06
+        3         3       -1.874046E-07        4.329025E-04        6.889857E-05        1.000000E+00       -1.874046E-07
+        4         4       -1.117414E-07        3.342775E-04        5.320191E-05        1.000000E+00       -1.117414E-07
+        5         5        4.305921E-07        6.561952E-04        1.044367E-04        1.000000E+00        4.305921E-07
+        6         6        2.462780E-06        1.569325E-03        2.497658E-04        1.000000E+00        2.462780E-06
+        7         7        6.983732E+05        8.356873E+02        1.330038E+02        1.000000E+00        6.983732E+05
+        8         8        1.284695E+06        1.133444E+03        1.803932E+02        1.000000E+00        1.284695E+06
+        9         9        3.248875E+06        1.802464E+03        2.868710E+02        1.000000E+00        3.248875E+06
+       10        10        3.918124E+06        1.979425E+03        3.150353E+02        1.000000E+00        3.918124E+06
+       11        11        4.050464E+06        2.012576E+03        3.203115E+02        1.000000E+00        4.050464E+06
+       12        12        4.145698E+06        2.036099E+03        3.240552E+02        1.000000E+00        4.145698E+06
+       13        13        4.319636E+06        2.078373E+03        3.307834E+02        1.000000E+00        4.319636E+06
+       14        14        4.488567E+06        2.118624E+03        3.371895E+02        1.000000E+00        4.488567E+06
+       15        15        4.817539E+06        2.194889E+03        3.493275E+02        1.000000E+00        4.817539E+06
+       16        16        4.839897E+06        2.199977E+03        3.501371E+02        1.000000E+00        4.839897E+06
+       17        17        5.044858E+06        2.246076E+03        3.574741E+02        1.000000E+00        5.044858E+06
+       18        18        5.373772E+06        2.318140E+03        3.689434E+02        1.000000E+00        5.373772E+06
+       19        19        5.513380E+06        2.348059E+03        3.737052E+02        1.000000E+00        5.513380E+06
+       20        20        6.309534E+06        2.511879E+03        3.997779E+02        1.000000E+00        6.309534E+06
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    23
+                                                                                                                                    
+0                                                                                                                                   
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    24
+                                                                                                                                    
+0                                                                                                                                   
+
+                                       M O D A L   E F F E C T I V E   M A S S   S U M M A R Y
+
+
+
+                                                    TOTAL EFFECTIVE MASS FRACTION
+                                         REFERENCE POINT AT ORIGIN OF BASIC COORDINATE SYSTEM
+
+
+                        T1                T2                T3                R1                R2                R3
+                   1.000000E+00      1.000000E+00      1.000000E+00      1.000000E+00      1.000000E+00      1.000000E+00
+
+
+
+
+                                                        EFFECTIVE MASS MATRIX   
+                       ***                                                                                  ***
+                       *   1.900295E+00  7.299828E-16  6.544171E-16 -1.375658E-14  1.370654E-05  8.423426E+00 *
+                       *   7.299828E-16  1.900295E+00  1.033467E-15 -1.370654E-05  1.733617E-15  7.526419E-01 *
+                       *   6.544171E-16  1.033467E-15  1.900295E+00 -8.423426E+00 -7.526419E-01  4.603525E-16 *
+                       *  -1.375658E-14 -1.370654E-05 -8.423426E+00  4.975391E+02 -2.048988E+00 -3.019669E-05 *
+                       *   1.370654E-05  1.733617E-15 -7.526419E-01 -2.048988E+00  3.894565E+02  2.717360E-04 *
+                       *   8.423426E+00  7.526419E-01  4.603525E-16 -3.019669E-05  2.717360E-04  4.250334E+02 *
+                       ***                                                                                  ***
+
+                                                     A-SET RIGID BODY MASS MATRIX
+                       ***                                                                                  ***
+                       *   1.900295E+00  0.000000E+00  2.151233E-18 -4.751707E-17  1.370654E-05  8.423426E+00 *
+                       *   0.000000E+00  1.900295E+00  0.000000E+00 -1.370654E-05  0.000000E+00  7.526419E-01 *
+                       *   2.151233E-18  0.000000E+00  1.900295E+00 -8.423426E+00 -7.526419E-01  4.751707E-17 *
+                       *  -4.751707E-17 -1.370654E-05 -8.423426E+00  4.975391E+02 -2.048988E+00 -3.019669E-05 *
+                       *   1.370654E-05  0.000000E+00 -7.526419E-01 -2.048988E+00  3.894565E+02  2.717360E-04 *
+                       *   8.423426E+00  7.526419E-01  4.751707E-17 -3.019669E-05  2.717360E-04  4.250334E+02 *
+                       ***                                                                                  ***
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    25
+                                                                                                                                    
+0                                                                                                                                   
+
+                                                    MODAL EFFECTIVE MASS FRACTION
+
+    MODE    FREQUENCY                      T1                                  T2                                  T3
+     NO.                        FRACTION            SUM             FRACTION            SUM             FRACTION            SUM
+
+       1    4.286750E-04      4.226125E-02      4.226125E-02      2.266634E-06      2.266634E-06      3.681715E-01      3.681715E-01
+       2    4.105357E-04      3.421768E-01      3.844381E-01      2.324068E-03      2.326335E-03      4.390543E-02      4.120769E-01
+       3    6.889857E-05      3.979201E-02      4.242301E-01      1.429491E-03      3.755826E-03      5.498026E-01      9.618795E-01
+       4    5.320191E-05      5.715507E-01      9.957808E-01      1.232934E-02      1.608517E-02      3.683442E-02      9.987139E-01
+       5    1.044367E-04      2.228295E-04      9.960036E-01      3.586487E-04      1.644382E-02      1.282815E-03      9.999968E-01
+       6    2.497658E-04      3.996414E-03      1.000000E+00      9.835562E-01      1.000000E+00      3.242091E-06      1.000000E+00
+       7    1.330038E+02      3.411403E-23      1.000000E+00      1.890792E-25      1.000000E+00      5.695374E-26      1.000000E+00
+       8    1.803932E+02      2.875932E-25      1.000000E+00      2.038898E-23      1.000000E+00      1.753669E-23      1.000000E+00
+       9    2.868710E+02      2.343477E-23      1.000000E+00      6.201656E-25      1.000000E+00      2.284815E-23      1.000000E+00
+      10    3.150353E+02      2.211996E-23      1.000000E+00      3.598871E-25      1.000000E+00      2.195014E-23      1.000000E+00
+      11    3.203115E+02      1.241436E-24      1.000000E+00      1.031661E-27      1.000000E+00      1.007503E-24      1.000000E+00
+      12    3.240552E+02      2.448000E-23      1.000000E+00      3.415262E-25      1.000000E+00      2.456657E-23      1.000000E+00
+      13    3.307834E+02      4.004127E-27      1.000000E+00      3.308301E-27      1.000000E+00      3.694974E-27      1.000000E+00
+      14    3.371895E+02      2.835670E-26      1.000000E+00      1.497448E-26      1.000000E+00      2.075988E-26      1.000000E+00
+      15    3.493275E+02      1.621551E-25      1.000000E+00      2.309944E-26      1.000000E+00      6.815797E-26      1.000000E+00
+      16    3.501371E+02      3.014232E-25      1.000000E+00      4.010247E-26      1.000000E+00      3.821035E-25      1.000000E+00
+      17    3.574741E+02      4.850715E-25      1.000000E+00      3.632619E-27      1.000000E+00      4.843920E-25      1.000000E+00
+      18    3.689434E+02      1.944486E-25      1.000000E+00      1.147638E-28      1.000000E+00      2.091673E-25      1.000000E+00
+      19    3.737052E+02      3.269130E-28      1.000000E+00      3.765729E-25      1.000000E+00      1.734710E-26      1.000000E+00
+      20    3.997779E+02      1.597154E-27      1.000000E+00      8.898852E-23      1.000000E+00      6.472898E-26      1.000000E+00
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    26
+                                                                                                                                    
+0                                                                                                                                   
+
+                                                    MODAL EFFECTIVE MASS FRACTION
+
+    MODE    FREQUENCY                      R1                                  R2                                  R3
+     NO.                        FRACTION            SUM             FRACTION            SUM             FRACTION            SUM
+
+       1    4.286750E-04      7.401171E-01      7.401171E-01      7.277359E-04      7.277359E-04      9.552853E-02      9.552853E-02
+       2    4.105357E-04      9.296828E-02      8.330854E-01      5.103511E-04      1.238087E-03      7.733920E-01      8.689206E-01
+       3    6.889857E-05      1.556725E-01      9.887579E-01      8.370610E-06      1.246458E-03      7.032777E-03      8.759533E-01
+       4    5.320191E-05      1.077197E-02      9.995299E-01      5.314101E-05      1.299599E-03      1.196948E-01      9.956481E-01
+       5    1.044367E-04      1.921447E-04      9.997220E-01      9.984033E-01      9.997029E-01      8.696697E-04      9.965178E-01
+       6    2.497658E-04      2.779773E-04      1.000000E+00      2.970607E-04      1.000000E+00      3.482213E-03      1.000000E+00
+       7    1.330038E+02      1.070590E-25      1.000000E+00      1.788370E-20      1.000000E+00      6.505100E-23      1.000000E+00
+       8    1.803932E+02      3.774945E-23      1.000000E+00      2.245021E-20      1.000000E+00      6.440711E-25      1.000000E+00
+       9    2.868710E+02      4.168569E-23      1.000000E+00      5.975373E-22      1.000000E+00      5.018092E-23      1.000000E+00
+      10    3.150353E+02      3.313416E-23      1.000000E+00      8.586953E-30      1.000000E+00      3.968550E-23      1.000000E+00
+      11    3.203115E+02      1.522281E-24      1.000000E+00      2.459144E-22      1.000000E+00      2.221637E-24      1.000000E+00
+      12    3.240552E+02      3.720525E-23      1.000000E+00      2.690542E-23      1.000000E+00      4.366640E-23      1.000000E+00
+      13    3.307834E+02      5.722393E-27      1.000000E+00      1.917757E-25      1.000000E+00      6.372769E-27      1.000000E+00
+      14    3.371895E+02      3.170204E-26      1.000000E+00      1.636469E-23      1.000000E+00      5.089500E-26      1.000000E+00
+      15    3.493275E+02      1.452851E-25      1.000000E+00      4.028076E-22      1.000000E+00      3.495559E-25      1.000000E+00
+      16    3.501371E+02      6.892425E-25      1.000000E+00      7.778616E-23      1.000000E+00      6.399375E-25      1.000000E+00
+      17    3.574741E+02      7.362934E-25      1.000000E+00      4.421401E-26      1.000000E+00      8.526991E-25      1.000000E+00
+      18    3.689434E+02      3.219753E-25      1.000000E+00      2.877646E-23      1.000000E+00      3.331354E-25      1.000000E+00
+      19    3.737052E+02      2.754355E-26      1.000000E+00      1.251877E-21      1.000000E+00      1.349055E-27      1.000000E+00
+      20    3.997779E+02      1.743963E-26      1.000000E+00      6.594284E-23      1.000000E+00      8.050595E-28      1.000000E+00
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    27
+                                                                                                                                    
+0                                                                                                                                   
+
+                                                     MODAL PARTICIPATION FACTORS
+
+    MODE     FREQUENCY               T1                T2                T3                R1                R2                R3
+     NO.
+
+       1    4.286750E-04      2.833881E-01      2.075397E-03      8.364415E-01     -1.918951E+01      5.323735E-01      6.372034E+00
+       2    4.105357E-04      8.063726E-01      6.645611E-02     -2.888482E-01      6.801129E+00      4.458246E-01      1.813057E+01
+       3    6.889857E-05      2.749846E-01     -5.211961E-02     -1.022148E+00     -8.800748E+00      5.709631E-02     -1.728920E+00
+       4    5.320191E-05     -1.042168E+00      1.530666E-01     -2.645680E-01     -2.315054E+00      1.438614E-01      7.132621E+00
+       5    1.044367E-04      2.057770E-02      2.610629E-02      4.937335E-02     -3.091917E-01     -1.971889E+01      6.079792E-01
+       6    2.497658E-04      8.714565E-02      1.367131E+00      2.482122E-03     -3.718932E-01      3.401356E-01     -1.216576E+00
+       7    1.330038E+02     -8.051504E-12     -5.994216E-13     -3.289816E-13      7.298359E-12      2.639114E-09     -1.662794E-10
+       8    1.803932E+02     -7.392644E-13     -6.224555E-12      5.772771E-12     -1.370468E-10      2.956921E-09     -1.654545E-11
+       9    2.868710E+02      6.673302E-12     -1.085586E-12     -6.589250E-12      1.440148E-10      4.824052E-10      1.460430E-10
+      10    3.150353E+02      6.483398E-12     -8.269774E-13      6.458463E-12     -1.283960E-10      5.782945E-14      1.298756E-10
+      11    3.203115E+02     -1.535935E-12      4.427708E-14     -1.383674E-12      2.752080E-11      3.094721E-10     -3.072897E-11
+      12    3.240552E+02      6.820499E-12     -8.056056E-13      6.832549E-12     -1.360554E-10      1.023645E-10      1.362339E-10
+      13    3.307834E+02      8.722970E-14      7.928901E-14      8.379462E-14     -1.687340E-12      8.642239E-12      1.645795E-12
+      14    3.371895E+02     -2.321338E-13      1.686888E-13     -1.986200E-13      3.971524E-12      7.983318E-11     -4.651030E-12
+      15    3.493275E+02     -5.551059E-13     -2.095131E-13      3.598892E-13     -8.502060E-12     -3.960758E-10     -1.218905E-11
+      16    3.501371E+02     -7.568308E-13      2.760553E-13      8.521205E-13     -1.851824E-11      1.740527E-10     -1.649227E-11
+      17    3.574741E+02      9.600931E-13     -8.308458E-14      9.594204E-13     -1.913987E-11      4.149631E-12      1.903748E-11
+      18    3.689434E+02     -6.078731E-13      1.476770E-14     -6.304597E-13      1.265683E-11     -1.058640E-10     -1.189931E-11
+      19    3.737052E+02      2.492451E-14     -8.459312E-13     -1.815616E-13      3.701890E-12     -6.982490E-10      7.572276E-13
+      20    3.997779E+02     -5.509140E-14      1.300402E-11      3.507195E-13     -2.945658E-12      1.602556E-10     -5.849592E-13
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    28
+                                                                                                                                    
+0                                                                                                                                   
+
+                                                         MODAL EFFECTIVE MASS   
+
+    MODE     FREQUENCY               T1                T2                T3                R1                R2                R3
+     NO.
+
+       1    4.286750E-04      8.030883E-02      4.307273E-06      6.996343E-01      3.682372E+02      2.834215E-01      4.060282E+01
+       2    4.105357E-04      6.502368E-01      4.416414E-03      8.343326E-02      4.625536E+01      1.987596E-01      3.287175E+02
+       3    6.889857E-05      7.561654E-02      2.716454E-03      1.044787E+00      7.745316E+01      3.259989E-03      2.989166E+00
+       4    5.320191E-05      1.086115E+00      2.342938E-02      6.999625E-02      5.359475E+00      2.069611E-02      5.087429E+01
+       5    1.044367E-04      4.234418E-04      6.815382E-04      2.437727E-03      9.559952E-02      3.888347E+02      3.696387E-01
+       6    2.497658E-04      7.594365E-03      1.869047E+00      6.160928E-06      1.383046E-01      1.156922E-01      1.480057E+00
+       7    1.330038E+02      6.482672E-23      3.593062E-25      1.082289E-25      5.326604E-23      6.964924E-18      2.764885E-20
+       8    1.803932E+02      5.465118E-25      3.874508E-23      3.332489E-23      1.878183E-20      8.743381E-18      2.737518E-22
+       9    2.868710E+02      4.453296E-23      1.178497E-24      4.341822E-23      2.074026E-20      2.327148E-19      2.132857E-20
+      10    3.150353E+02      4.203445E-23      6.838916E-25      4.171174E-23      1.648554E-20      3.344245E-27      1.686766E-20
+      11    3.203115E+02      2.359095E-24      1.960460E-27      1.914552E-24      7.573942E-22      9.577298E-20      9.442699E-22
+      12    3.240552E+02      4.651921E-23      6.490004E-25      4.668372E-23      1.851107E-20      1.047849E-20      1.855968E-20
+      13    3.307834E+02      7.609021E-27      6.286746E-27      7.021539E-27      2.847115E-24      7.468830E-23      2.708640E-24
+      14    3.371895E+02      5.388608E-26      2.845593E-26      3.944990E-26      1.577301E-23      6.373336E-21      2.163208E-23
+      15    3.493275E+02      3.081425E-25      4.389574E-26      1.295202E-25      7.228503E-23      1.568761E-19      1.485729E-22
+      16    3.501371E+02      5.727929E-25      7.620651E-26      7.261093E-25      3.429251E-22      3.029433E-20      2.719948E-22
+      17    3.574741E+02      9.217788E-25      6.903048E-27      9.204876E-25      3.663348E-22      1.721943E-23      3.624256E-22
+      18    3.689434E+02      3.695097E-25      2.180850E-28      3.974795E-25      1.601953E-22      1.120718E-20      1.415937E-22
+      19    3.737052E+02      6.212310E-28      7.155996E-25      3.296461E-26      1.370399E-23      4.875517E-19      5.733937E-25
+      20    3.997779E+02      3.035063E-27      1.691044E-22      1.230041E-25      8.676899E-24      2.568187E-20      3.421772E-25
+
+                  TOTAL       1.900295E+00      1.900295E+00      1.900295E+00      4.975391E+02      3.894565E+02      4.250334E+02
+
+
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    29
+                                                                                                                                    
+0                                                                                                                                   
+
+                                                        MODAL EFFECTIVE WEIGHT  
+
+    MODE     FREQUENCY               T1                T2                T3                R1                R2                R3
+     NO.
+
+       1    4.286750E-04      8.030883E-02      4.307273E-06      6.996343E-01      3.682372E+02      2.834215E-01      4.060282E+01
+       2    4.105357E-04      6.502368E-01      4.416414E-03      8.343326E-02      4.625536E+01      1.987596E-01      3.287175E+02
+       3    6.889857E-05      7.561654E-02      2.716454E-03      1.044787E+00      7.745316E+01      3.259989E-03      2.989166E+00
+       4    5.320191E-05      1.086115E+00      2.342938E-02      6.999625E-02      5.359475E+00      2.069611E-02      5.087429E+01
+       5    1.044367E-04      4.234418E-04      6.815382E-04      2.437727E-03      9.559952E-02      3.888347E+02      3.696387E-01
+       6    2.497658E-04      7.594365E-03      1.869047E+00      6.160928E-06      1.383046E-01      1.156922E-01      1.480057E+00
+       7    1.330038E+02      6.482672E-23      3.593062E-25      1.082289E-25      5.326604E-23      6.964924E-18      2.764885E-20
+       8    1.803932E+02      5.465118E-25      3.874508E-23      3.332489E-23      1.878183E-20      8.743381E-18      2.737518E-22
+       9    2.868710E+02      4.453296E-23      1.178497E-24      4.341822E-23      2.074026E-20      2.327148E-19      2.132857E-20
+      10    3.150353E+02      4.203445E-23      6.838916E-25      4.171174E-23      1.648554E-20      3.344245E-27      1.686766E-20
+      11    3.203115E+02      2.359095E-24      1.960460E-27      1.914552E-24      7.573942E-22      9.577298E-20      9.442699E-22
+      12    3.240552E+02      4.651921E-23      6.490004E-25      4.668372E-23      1.851107E-20      1.047849E-20      1.855968E-20
+      13    3.307834E+02      7.609021E-27      6.286746E-27      7.021539E-27      2.847115E-24      7.468830E-23      2.708640E-24
+      14    3.371895E+02      5.388608E-26      2.845593E-26      3.944990E-26      1.577301E-23      6.373336E-21      2.163208E-23
+      15    3.493275E+02      3.081425E-25      4.389574E-26      1.295202E-25      7.228503E-23      1.568761E-19      1.485729E-22
+      16    3.501371E+02      5.727929E-25      7.620651E-26      7.261093E-25      3.429251E-22      3.029433E-20      2.719948E-22
+      17    3.574741E+02      9.217788E-25      6.903048E-27      9.204876E-25      3.663348E-22      1.721943E-23      3.624256E-22
+      18    3.689434E+02      3.695097E-25      2.180850E-28      3.974795E-25      1.601953E-22      1.120718E-20      1.415937E-22
+      19    3.737052E+02      6.212310E-28      7.155996E-25      3.296461E-26      1.370399E-23      4.875517E-19      5.733937E-25
+      20    3.997779E+02      3.035063E-27      1.691044E-22      1.230041E-25      8.676899E-24      2.568187E-20      3.421772E-25
+
+                  TOTAL       1.900295E+00      1.900295E+00      1.900295E+00      4.975391E+02      3.894565E+02      4.250334E+02
+
+
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK EFMFSMS  WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                 1                 6                 2                 1                 6             10000
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =        7 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       19 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =       35 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK EFMASSS  WRITTEN ON FORTRAN UNIT  12, TRL =
+                    102                 6                 6                 1                 1                 6             10000
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =        7 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       44 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =       90 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK RBMASSS  WRITTEN ON FORTRAN UNIT  12, TRL =
+                    103                 6                 6                 1                 1                 6             10000
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =        7 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       44 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =       90 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK EFMFACS  WRITTEN ON FORTRAN UNIT  12, TRL =
+                    104                20                 6                 2                 1                 6             10000
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =        7 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =      114 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =      244 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK MPFACS   WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                20                 6                 2                 1                 6             10000
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =        7 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =      114 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =      244 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK MEFMASS  WRITTEN ON FORTRAN UNIT  12, TRL =
+                    102                20                 6                 2                 1                 6             10000
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =        7 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =      114 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =      244 WORDS.)
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    30
+                                                                                                                                    
+0                                                                                                                                   
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK MEFWTS   WRITTEN ON FORTRAN UNIT  12, TRL =
+                    103                20                 6                 2                 1                 6             10000
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =        7 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =      114 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =      244 WORDS.)
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE     15 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE      3 BUSH     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE    885 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE     11 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE   4457 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE     14 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE      3 BUSH     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE    863 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE     13 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE   4450 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE     15 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE      3 BUSH     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE   2847 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE     51 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE   3135 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE      3 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE      8 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE      3 BUSH     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE   2950 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE     54 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE   3311 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE      2 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE      7 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE      3 BUSH     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE   1549 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE     20 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE   1972 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE      2 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE     17 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE      3 BUSH     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE    834 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE     20 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE   4911 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE      3 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE      4 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE   8843 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE   1724 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE      3 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE   8267 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE   3340 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE      5 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE   8796 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE   1774 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE   7482 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE   2313 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE      6 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE   8758 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE   2885 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   12      
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   12      
+     THERE ARE   7353 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   12      
+     THERE ARE   3416 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   12      
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE     12 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE      1 BUSH     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE   4958 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE     10 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE   5519 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE      8 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE   3688 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE      7 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE   3808 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE     10 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE      1 BUSH     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE   8768 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE   6201 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE      7 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE   8768 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE   3544 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE      6 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE   8836 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE   3656 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE      3 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE   7468 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE     24 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE   2006 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK LAMA     WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                20                 0                 0                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =      146 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =       24 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =      316 WORDS.)
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK OUGV1    WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                60             44000                 0                 0                 0                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =    65538 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =      334 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =  3979267 WORDS.)
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    31
+                                                                                                                                    
+0                                                                                                                                   
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    32
+                                                                                                                                    
+0                                                                                                                                   
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK ONRGY1   WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                20                 0                 0                 0                 2                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =    32092 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =     1214 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =   542498 WORDS.)
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE   3432 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE   1534 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   1       
+     THERE ARE      7 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE   3296 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE    460 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   2       
+     THERE ARE      5 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE   8844 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE      2 CONM2    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE   6147 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   3       
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE   8838 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE   4824 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   4       
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE      3 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE   8467 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE      2 CONM2    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE   1524 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   5       
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE   7183 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE   1258 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   6       
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE   3553 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE    770 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   7       
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE   2845 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE    122 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE   2754 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   8       
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE   3877 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE    467 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   9       
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE      4 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE   6600 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE   4195 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   10      
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE      3 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE   8745 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE   4737 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   11      
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   12      
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   12      
+     THERE ARE   6933 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   12      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   12      
+     THERE ARE   5070 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   12      
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE     13 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE      3 CONM2    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE   5854 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   13      
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE      8 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE      3 CONM2    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE   6434 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   14      
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE      6 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE   5467 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   15      
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE      7 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE      2 CONM2    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE   5578 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   16      
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE     11 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE      4 CONM2    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE   6750 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   17      
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE      9 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE   8856 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE      2 CONM2    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE   4592 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   18      
+     THERE ARE      4 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE   8804 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE   4884 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   19      
+     THERE ARE      6 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE      2 BEAM     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE   4991 HEXA     ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE    128 PENTA    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE   1794 QUAD4    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4507 (SDREE)
+     IN SUBCASE         1      MODE   20      
+     THERE ARE      8 TRIA3    ELEMENTS HAVING STRAIN ENERGY WHICH IS LESS THAN   0.0010 PERCENT
+     OF THE TOTAL STRAIN ENERGY OF ALL ELEMENTS.
+ *** USER INFORMATION MESSAGE 4114 (OUTPBN2)
+     DATA BLOCK ONRGY2   WRITTEN ON FORTRAN UNIT  12, TRL =
+                    101                20                 0                 0                 0                 2                 0
+     (MAXIMUM POSSIBLE FORTRAN RECORD SIZE =    65538 WORDS.)
+     (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =    28644 WORDS.)
+     (NUMBER OF FORTRAN RECORDS WRITTEN =     1214 RECORDS.)
+     (TOTAL DATA WRITTEN FOR DATA BLOCK =   480146 WORDS.)
+ *** USER INFORMATION MESSAGE 4110 (OUTPBN2)
+                                 END-OF-DATA SIMULATION ON FORTRAN UNIT 12
+                                 (MAXIMUM SIZE OF FORTRAN RECORDS WRITTEN =      1 WORDS.)
+                                       (NUMBER OF FORTRAN RECORDS WRITTEN =      1 RECORDS.)
+                                       (TOTAL DATA WRITTEN FOR EOF MARKER =      1 WORDS.)
+1    FREE FREE MODES                                                       NOVEMBER   2, 2026  SIMCENTER NASTRAN 10/17/25   PAGE    33
+                                                                                                                                    
+0                                                                                                                                   
+ * * * *  D B D I C T   P R I N T  * * * *      SUBDMAP = PRTSUM  ,  DMAP STATEMENT NO.     29
+
+
+
+0                                   * * * *  A N A L Y S I S  S U M M A R Y  T A B L E  * * * *
+0 SEID  PEID PROJ VERS APRCH      SEMG SEMR SEKR SELG SELR MODES DYNRED SOLLIN PVALID SOLNL LOOPID DESIGN CYCLE SENSITIVITY
+ --------------------------------------------------------------------------------------------------------------------------
+     0     0    1    1 '        '    T    T    T    T    T     T      F      T      0     F     -1            0           F
+0SEID = SUPERELEMENT ID.
+ PEID = PRIMARY SUPERELEMENT ID OF IMAGE SUPERELEMENT.
+ PROJ = PROJECT ID NUMBER.
+ VERS = VERSION ID.
+ APRCH = BLANK FOR STRUCTURAL ANALYSIS.  HEAT FOR HEAT TRANSFER ANALYSIS.
+ SEMG = STIFFNESS AND MASS MATRIX GENERATION STEP.
+ SEMR = MASS MATRIX REDUCTION STEP (INCLUDES EIGENVALUE SOLUTION FOR MODES).
+ SEKR = STIFFNESS MATRIX REDUCTION STEP.
+ SELG = LOAD MATRIX GENERATION STEP.
+ SELR = LOAD MATRIX REDUCTION STEP. 
+ MODES = T (TRUE) IF NORMAL MODES OR BUCKLING MODES CALCULATED.
+ DYNRED = T (TRUE) MEANS GENERALIZED DYNAMIC AND/OR COMPONENT MODE REDUCTION PERFORMED.
+ SOLLIN = T (TRUE) IF LINEAR SOLUTION EXISTS IN DATABASE.
+ PVALID = P-DISTRIBUTION ID OF P-VALUE FOR P-ELEMENTS
+ LOOPID = THE LAST LOOPID VALUE USED IN THE NONLINEAR ANALYSIS.  USEFUL FOR RESTARTS.
+ SOLNL = T (TRUE) IF NONLINEAR SOLUTION EXISTS IN DATABASE.
+ DESIGN CYCLE = THE LAST DESIGN CYCLE (ONLY VALID IN OPTIMIZATION).
+ SENSITIVITY = SENSITIVITY MATRIX GENERATION FLAG.
+1                                        * * * END OF JOB * * *
+ 
+ 

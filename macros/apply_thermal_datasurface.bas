@@ -7,8 +7,8 @@
 '   mirror's FE nodes as nodal temperatures, automatically and repeatably --
 '   no manual Data Surface Editor clicking.  The macro:
 '     1. builds an Arbitrary 3D Data Surface from the cloud,
-'     2. sets the interpolation the way we validated (nearest neighbor),
-'     3. creates a fresh load set,
+'     2. sets the interpolation using nearest neighbor 
+'     3. creates a fresh load set
 '     4. evaluates the surface at every selected mirror node and writes the
 '        resulting temperatures as nodal temperature loads in one bulk call.
 '
@@ -19,16 +19,16 @@
 '     InterpMin     = minimum number of locations to include
 '   Setting InterpPercent = 0 and InterpMin = 1 makes it a NEAREST-NEIGHBOR
 '   lookup: each target takes the value of the single closest cloud point, with
-'   no averaging.  That is what we want here -- the thermal field is essentially
+'   no averaging.  The thermal field is essentially
 '   a pure through-thickness gradient (uniform across the mirror face), so
 '   nearest neighbor reproduces it cleanly and avoids the smeared/rippled result
 '   that multi-point IDW produces on a sparse or ring-shaped source.
 '
 '   Rather than leave each load "live-linked" to the surface, we EVALUATE the
 '   surface at each node (ds.Evaluate + ds.GetData) and store the resulting
-'   number as a plain nodal temperature.  This uses FEMAP's own IDW math -- so
+'   number as a plain nodal temperature.  This uses FEMAP's own IDW math so
 '   it matches exactly what you would get in the Data Surface Editor with the
-'   same options -- but the load set ends up self-contained (just numbers), and
+'   same options but the load set ends up self-contained (just numbers), and
 '   there is no dependence on the surface persisting or being re-evaluated.
 '
 ' COORDINATE FRAME / ASSUMPTIONS
@@ -54,7 +54,7 @@
 '
 ' STATUS
 '   Verified working in FEMAP (2026-10-26). Notes from first run, now baked in:
-'     * Nodal temps are created with feLoadNTemp.PutArray -- you must set the
+'     * Nodal temps are created with feLoadNTemp.PutArray you must set the
 '       object's setID (the load set) and color FIRST; the active-set flag alone
 '       is not enough. (The fuller PutAllArray needs the same setID and was
 '       dropped in favor of the simpler PutArray.)
@@ -68,9 +68,10 @@
 ' CURVED SURFACES (SAG_MODE)
 '   Mirror optical surfaces are not always flat. The flat cloud stores T vs depth
 '   below a flat vertex plane; a curved surface sits at z = sag(x,y). The chosen
-'   (interim) rule: shift each through-thickness column straight DOWN the optical
+'   (interim) rule for thermal data produced assuming flats: 
+'   shift each through-thickness column straight DOWN the optical
 '   axis by the local sag, so a node whose axial depth below the curved surface is
-'   d still gets the flat column's T(d). ONLY z is shifted -- x and y are kept, so
+'   d still gets the flat column's T(d). ONLY z is shifted. x and y are kept, so
 '   nothing moves sideways. Depth is axial (along z), not along the surface normal;
 '   for steep ("fast") mirrors that is a small, flagged approximation.
 '     SAG_MODE = 0  flat     -> sag = 0 (exact original behavior)
@@ -253,7 +254,7 @@ Sub Main
 
     '--------------------------------------------------------------------------
     ' STEP 3: Read the cloud file into coordinate / value arrays
-    '   Same delimiter-tolerant reader as show_point_cloud.bas. We need 4 numeric
+    '   Same delimiter-tolerant reader as show_point_cloud.bas. Need 4 numeric
     '   columns (x,y,z,T); header and non-numeric lines are skipped.
     '--------------------------------------------------------------------------
     Dim cx() As Double, cy() As Double, cz() As Double, cv() As Double
