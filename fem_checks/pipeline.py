@@ -218,8 +218,15 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
     summary.results_json = out / "results.json"
     RP.write_json(summary.results_json, dict(header=header, settings=s, model=_model_json(info),
                                              mount=mount, runs=summary.runs, checks=results))
-    summary.report = RP.build_pdf(out / "fem_checks_report.pdf", header, results, charts,
-                                  messages, summary.runs)
+    pdf = out / "fem_checks_report.pdf"
+    try:
+        summary.report = RP.build_pdf(pdf, header, results, charts, messages, summary.runs)
+    except PermissionError:
+        # Windows locks a PDF that is open in a viewer (the user's first full run stopped
+        # here). Write a time-stamped copy instead of losing the whole run.
+        alt = out / f"fem_checks_report_{_dt.datetime.now():%Y%m%d_%H%M%S}.pdf"
+        say(f"  {pdf.name} is open in another program (locked); writing {alt.name} instead")
+        summary.report = RP.build_pdf(alt, header, results, charts, messages, summary.runs)
     say(f"Overall: {overall}. Report: {summary.report}")
     return summary
 
