@@ -161,9 +161,12 @@ def chart_quality(quality: dict, path: Path) -> Path | None:
 
 # ------------------------------------------------------------------ PDF
 def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
-              messages: list, runs: list, method: list | None = None) -> Path:
+              messages: list, runs: list, method: list | None = None,
+              model_file: str = "") -> Path:
     """method: [(heading, [paragraphs])] from method.method_sections(); printed as
-    Appendix A so the report explains its own criteria and their reasoning."""
+    Appendix A so the report explains its own criteria and their reasoning.
+    model_file: the original model deck's file name; shown in the title and in the footer
+    of every page, so a printed page always identifies its model."""
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import landscape, letter
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -181,8 +184,21 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
 
     doc = SimpleDocTemplate(str(path), pagesize=landscape(letter), leftMargin=0.5 * inch,
                             rightMargin=0.5 * inch, topMargin=0.5 * inch, bottomMargin=0.5 * inch,
-                            title="FEM validation checks", author="fem_checks")
+                            title=f"FEM validation checks: {model_file}" if model_file
+                            else "FEM validation checks", author="fem_checks")
     width = landscape(letter)[0] - inch
+    page_w = landscape(letter)[0]
+    stamp = f"{_dt.datetime.now():%Y-%m-%d %H:%M}"
+
+    def footer(canvas, doc_):
+        """Model file name, run date and page number at the foot of every page."""
+        canvas.saveState()
+        canvas.setFont("Helvetica", 7)
+        canvas.setFillColor(colors.HexColor(INK2))
+        canvas.drawString(0.5 * inch, 0.3 * inch,
+                          f"FEM validation checks  |  {model_file or '-'}  |  {stamp}")
+        canvas.drawRightString(page_w - 0.5 * inch, 0.3 * inch, f"Page {doc_.page}")
+        canvas.restoreState()
 
     mono = ParagraphStyle("mono", parent=body, fontName="Courier", fontSize=6.6, leading=7.6)
 
@@ -225,7 +241,7 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
         t.setStyle(TableStyle(style))
         return t
 
-    story = [Paragraph("FEM validation checks", h1)]
+    story = [Paragraph("FEM validation checks" + (f": {escape(model_file)}" if model_file else ""), h1)]
     meta = [[k, v] for k, v in header.items()]
     story.append(table(["Item", "Value"], meta, [2.2 * inch, width - 2.2 * inch]))
     story.append(Spacer(1, 8))
@@ -296,5 +312,5 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
     story.append(Paragraph(f"Generated {_dt.datetime.now():%Y-%m-%d %H:%M} by fem_checks. "
                            "Untested in production until the first-run checklist in "
                            "fem_checks/docs/design.md is complete.", small))
-    doc.build(story)
+    doc.build(story, onFirstPage=footer, onLaterPages=footer)
     return Path(path)

@@ -38,7 +38,8 @@ all supporting data, and the relevant Nastran output.
 5. Click **Run checks**. Nastran runs once per check; the report opens when finished.
 
 Everything is written to `<deck name>_fem_checks\` next to the deck:
-- `fem_checks_report.pdf`, the report;
+- `<model>_fem_checks_report.pdf`, the report (the model file name is also in its title and
+  on every page);
 - `01_<model>_freefree.dat` … `05_<model>_thermal.dat` and their Nastran output;
 - `fem_checks.json`, the settings used;
 - `results.json`, every number in the report;

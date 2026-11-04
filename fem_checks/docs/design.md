@@ -123,7 +123,8 @@ Folder `<deck>_fem_checks\`:
 - `fem_checks.json`: the settings used.
 - `<model>_bulk.bdf`, `<model>_bulk_thermal.bdf`.
 - `01_<model>_freefree.dat` … `05_<model>_thermal.dat`, each with `.f06/.op2/.f04/.log`.
-- `fem_checks_report.pdf` (landscape):
+- `<model>_fem_checks_report.pdf` (landscape; model file name in the title and every page
+  footer):
   - page 1: model, traceability, units, mount grid and CG offset, the PASS/FAIL table;
   - one section per check:
     - verdict and criteria;
@@ -235,3 +236,4 @@ Operation:
 | D | Repository reorganized: package documents in `fem_checks/docs/`, reference model and outputs in `fem_checks/reference_model/`, reference PDFs in `reference/`; README files added. |
 | E | Method appendix added to the report (criteria, values applied and reasoning for each check). |
 | F | Displacements rotated from each grid's output system to basic by grid ID (any R/C/S system); the mount grid may have any output system; every check's verdict and reason, and Nastran FATAL messages, written to the run log. |
+| G | Report carries the original model file name in its file name, title, header and every page footer. |

@@ -249,7 +249,8 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
         "FAIL" if any(c.status == "FAIL" for c in results) else "PASS")
     header = {
         "Overall": overall,
-        "Model deck": s.deck,
+        "Model file": Path(s.deck).name,
+        "Model deck (full path)": str(Path(s.deck).resolve()),
         "Date": f"{_dt.datetime.now():%Y-%m-%d %H:%M}",
         "Nastran version(s)": ", ".join(versions) or "-",
         "Units": f"{s.units} (g = {unit['g']:g})",
@@ -266,15 +267,16 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
                                              mount=mount, runs=summary.runs, checks=results))
     method = method_sections(s, unit, mount.grid, mount.auto, spc_label,
                              real_label if s.real_spc_set else "the model's real SPC set", s.alpha)
-    pdf = out / "fem_checks_report.pdf"
+    # Report named after the model, like the check decks: <model>_fem_checks_report.pdf
+    pdf = out / f"{stem}_fem_checks_report.pdf"
     try:
-        summary.report = RP.build_pdf(pdf, header, results, charts, messages, summary.runs, method)
+        summary.report = RP.build_pdf(pdf, header, results, charts, messages, summary.runs, method, Path(s.deck).name)
     except PermissionError:
         # Windows locks a PDF that is open in a viewer (an early full run stopped
         # here). Write a time-stamped copy instead of losing the whole run.
-        alt = out / f"fem_checks_report_{_dt.datetime.now():%Y%m%d_%H%M%S}.pdf"
+        alt = out / f"{stem}_fem_checks_report_{_dt.datetime.now():%Y%m%d_%H%M%S}.pdf"
         say(f"  {pdf.name} is open in another program (locked); writing {alt.name} instead")
-        summary.report = RP.build_pdf(alt, header, results, charts, messages, summary.runs, method)
+        summary.report = RP.build_pdf(alt, header, results, charts, messages, summary.runs, method, Path(s.deck).name)
     say(f"Overall: {overall}. Report: {summary.report}")
     return summary
 
