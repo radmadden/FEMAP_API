@@ -53,8 +53,9 @@ the output folder. To repeat a run without the GUI:
 Page 1 lists every check with its verdict. Each check then has its criteria, data tables,
 a chart, and the verbatim `.f06` blocks the verdict was read from. Cells shaded the same
 color are the values a criterion compares with each other. Appendix A (Method) explains,
-for each check, what was run, the criteria with the values applied, and why. ERROR means Nastran did not
-finish that run (see the appendix and the run's `.f04`/`.log`); it is not a model verdict.
+for each check, what was run, the criteria with the values applied, and why. ERROR means
+Nastran did not finish that run (see Appendix B and the run's `.f04`/`.log`); it is not a
+model verdict.
 
 ## Documentation
 
