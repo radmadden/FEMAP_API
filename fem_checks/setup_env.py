@@ -39,7 +39,7 @@ SUPPORTED = ((3, 10), (3, 12))  # inclusive range
 
 EXTENSIONS = ["ms-python.python", "ms-toolsai.jupyter"]
 
-# Usual Simcenter Nastran locations (FEMAP bundle first; the user's runs came from
+# Usual Simcenter Nastran locations (FEMAP bundle first; the reference runs came from
 # C:/PROGRAM FILES/SIEMENS/FEMAP 2512/NASTRAN per the sample .f06s).
 NASTRAN_GLOBS = [
     r"C:\Program Files\Siemens\FEMAP*\NASTRAN\bin\nastran*.exe",
@@ -92,7 +92,7 @@ def register_kernel() -> bool:
 # ------------------------------------------------------------------ 4 VS Code
 def _merge(path: Path, wanted: dict) -> dict:
     """Load JSON at path (if any), add keys from ``wanted`` that are missing, write back.
-    Existing user values always win. Lists named 'recommendations'/'configurations' are
+    Existing values in the file always win. Lists named 'recommendations'/'configurations' are
     merged by value/name rather than replaced."""
     data = {}
     if path.exists():
@@ -128,8 +128,8 @@ def write_vscode(repo: Path = REPO) -> None:
         "python.testing.unittestEnabled": False,
         "python.testing.pytestArgs": ["fem_checks/tests"],
         "jupyter.notebookFileRoot": "${workspaceFolder}/fem_checks",
-        # The Problems tab otherwise fills with Pylance type warnings about pyNastran
-        # (user asked how to make them go away). Real errors still show.
+        # The Problems tab otherwise fills with Pylance type warnings about pyNastran.
+        # Real errors still show.
         "python.analysis.typeCheckingMode": "off",
         "files.exclude": {"**/__pycache__": True, "**/.pytest_cache": True},
     })
@@ -170,7 +170,7 @@ def find_nastran(globs=NASTRAN_GLOBS) -> list[str]:
 
     Only nastran.exe is returned. The same bin folder also holds nastranw.exe, a
     launcher that hands the job off and returns at once (exit code 0, no .f06 yet).
-    The first user run picked it up because it sorts ahead of nastran.exe, and every
+    An early run picked it up because it sorts ahead of nastran.exe, and every
     check came back ERROR in under a second."""
     found = []
     for g in globs:

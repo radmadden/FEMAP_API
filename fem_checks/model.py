@@ -4,11 +4,11 @@
   * model summary: card counts, element quality, pyNastran mass properties
   * pick / validate the kinematic mount grid
   * pull the mass/MPC-relevant case control out of the FEMAP deck so the check decks
-    keep it (e.g. the user's 1G template carries "NSM = 2": dropping it would drop mass)
+    keep it (e.g. a 1G deck of the reference model carries "NSM = 2": dropping it would drop mass)
   * write the bulk data once (and a thermal variant with uniform CTE)
 
 FEMAP decks end with a checksum on the ENDDATA line (e.g. "ENDDATA b482e8c1"). The
-user confirmed decks without it run on their Simcenter install, so the decks this tool
+Femap-bundled Simcenter Nastran was confirmed to run decks without it, so the decks this tool
 writes simply don't carry one. read_model() strips it before pyNastran sees the file.
 """
 from __future__ import annotations
@@ -110,7 +110,7 @@ def read_trace(deck: Path) -> dict:
       nastran_statements   NASTRAN / INIT lines ahead of the executive control
                            (FEMAP writes e.g. 'NASTRAN SYSTEM(442)=-1,SYSTEM(319)=1');
                            these are carried so the check runs use the same solver
-                           system settings as the user's own runs."""
+                           system settings as the model's own runs."""
     out = {"deck": str(Path(deck).resolve()), "nastran_statements": []}
     in_exec = True
     for line in Path(deck).read_text(errors="replace").splitlines():
@@ -162,7 +162,7 @@ def carried_case_control(deck: Path) -> list[str]:
 # compared here: interior angles and edge aspect ratio. Nastran's skew, taper and warp
 # are defined differently from pyNastran's skew/taper/warp-angle metrics, so those are
 # reported as statistics only. (FEMAP's Tools > Check > Distortion uses its own,
-# user-set tolerances; the tool doesn't try to mirror them.)
+# own configurable tolerances; the tool doesn't try to mirror them.)
 GEOMCHECK_LIMITS = [
     # (element types, pyNastran metric, '<' or '>', limit, Nastran keyword)
     ({"CQUAD4", "CQUADR"}, "min_interior_angle", "<", 30.0, "Q4_IAMIN"),
@@ -340,7 +340,7 @@ def _spc_grids(model: BDF) -> set[int]:
     """Grids with a PERMANENT single-point constraint (GRID card PS field).
 
     SPC/SPC1 cards in the model's own sets don't count: the check decks select only
-    their own SPC set, so those cards are inactive. (The user's model has its mount grid
+    their own SPC set, so those cards are inactive. (The reference model has its mount grid
     199999 in SPC sets 2 and 3; refusing it for that would be wrong.) The PS field is
     always active, and an SPC1 123456 on top of it is harmless, but a grid with PS
     rotations fixed couldn't carry the unit-rotation SPCD, so it's refused."""
@@ -401,7 +401,7 @@ def bulk_text(model: BDF) -> str:
     # Write in pyNastran's "punch" mode: bulk data only, no executive or case control
     # (write_mesh.py _write_header skips both when punch=True). We discard those
     # sections anyway, and pyNastran's case-control writer asserts on lines longer than
-    # ~68 characters (bdf/subcase.py), which real FEMAP decks have: the first user run
+    # ~68 characters (bdf/subcase.py), which real FEMAP decks have: an early live run
     # stopped with "AssertionError: len(msg)=77". The flag is restored afterwards.
     saved_punch = model.punch
     model.punch = True
@@ -435,7 +435,7 @@ def make_thermal_uniform(model: BDF, alpha: float) -> list[str]:
     - PCOMP/PCOMPG TREF = 0.
     - MATT* removed: with TEMP(INIT) defined, MATTi properties are evaluated at the
       initial temperature (qrg ~29940 remark 8), which could make alpha non-uniform.
-    - Every rigid element gets ALPHA = alpha (decision #4; RIGID=LAGRAN is set in the
+    - Every rigid element gets ALPHA = alpha (design decision D4; RIGID=LAGRAN is set in the
       deck). Rigid-element TREF is left alone: the Simcenter RBE2 format has no TREF
       field (qrg ~112883).
     Returns a log of what was changed."""

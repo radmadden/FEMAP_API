@@ -135,7 +135,7 @@ def element_force_peaks(op2: OP2, subcase: int, top: int = 10) -> dict:
 
     Shells requested with FORCE(CORNER) have centroid rows (node id 0) and corner rows.
     The centroid rows are the element result; corner rows are bilinear extrapolations.
-    On the user's model the corner rows show 20-80 lbf/in under a 1 rad rigid rotation
+    On the reference model the corner rows show 20-80 lbf/in under a 1 rad rigid rotation
     while the centroid rows are ~1e-7, so the pass/fail uses centroid rows and the
     corner peak is reported separately (key 'corner_force')."""
     out = {}

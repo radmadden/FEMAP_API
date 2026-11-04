@@ -450,7 +450,7 @@ def _clean(block: list[str], banner: set[str]) -> list[str]:
 
 def extract_excerpts(lines: list[str]) -> dict[str, list[list[str]]]:
     """Verbatim .f06 blocks for the report, so readers see the numbers exactly as Nastran
-    printed them (user request: 'reprint the ground checks like the f06').
+    printed them, alongside the tool's own tables.
 
     Keys -> list of blocks (each block = list of text lines):
       groundcheck   one block per DOF set (UIM 7570 header through the 6 PASS/FAIL rows)

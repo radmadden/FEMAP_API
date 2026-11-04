@@ -2,7 +2,7 @@
 with the check's own cards + INCLUDE of the shared model bulk data.
 
 Case-control syntax is from the Simcenter QRG (qrg ~line) and, where possible, copied
-from the user's own working decks (freefree_check-0000.f06 case-control echo,
+from the reference decks in the repo root (freefree_check-0000.f06 case-control echo,
 UD_check-template.dat, 1G_check_template.dat).
 
 Reserved IDs (all offsets from ``base``, see model.reserved_base):
@@ -21,8 +21,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 # key -> (number, suffix). File name = "<nn>_<model stem>_<suffix>.dat", e.g. the model
-# gimbal_assy_full.dat gives 01_gimbal_assy_full_freefree.dat (user request: the check
-# files carry the original model name).
+# gimbal_assy_full.dat gives 01_gimbal_assy_full_freefree.dat (the check
+# files carry the original model name for traceability).
 DECK_NAMES = {
     "freefree": ("01", "freefree"),
     "constrained_modes": ("02", "constrained_modes"),
@@ -82,7 +82,7 @@ class DeckIds:
 
 def _cc(line: str, indent: str = "  ") -> str:
     """Wrap a case-control command at commas so no line passes column 72.
-    Continuation is a trailing comma, as in the user's GROUNDCHECK echo."""
+    Continuation is a trailing comma, as in the reference GROUNDCHECK echo."""
     if len(indent + line) <= 72:
         return indent + line
     parts, cur = [], indent
@@ -98,7 +98,7 @@ def _cc(line: str, indent: str = "  ") -> str:
 
 
 def _trace_header(trace: dict) -> list[str]:
-    """$-comment block naming where this deck came from (user request: traceability)."""
+    """$-comment block naming where this deck came from (traceability)."""
     import datetime as _dt
     lines = ["$ Written by fem_checks (FEM validation). Regenerate instead of editing.",
              f"$ Written    : {_dt.datetime.now():%Y-%m-%d %H:%M}",
@@ -145,10 +145,10 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
                 stem: str = "model") -> dict[str, Path]:
     """Write the decks named in ``which`` (keys of DECK_NAMES). Returns {key: path}.
 
-    mount:       the kinematic-mount grid (auto-picked or user-entered). The SPC1 card is
+    mount:       the kinematic-mount grid (auto-picked or entered in the settings). The SPC1 card is
                  "SPC1, <set id>, 123456, <mount>": ids.mount_spc is only the SET ID the
                  case control selects; the constrained GRID is always ``mount``.
-    gravity_spc: SPC set for the gravity check (ids.mount_spc or the real set, decision #2).
+    gravity_spc: SPC set for the gravity check (ids.mount_spc or the real set, design decision D2).
     real_spc:    the model's real boundary-condition set, used by constrained modes."""
     trace = trace or {}
     bulk_file, thermal_bulk_file = bulk_filenames(stem)
@@ -184,7 +184,7 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
             f"SPC = {real_spc}",
             f"METHOD = {ids.eigrl_con}",
             "DISPLACEMENT(PLOT) = ALL",
-            # Same request as the user's working free-free deck (case-control echo).
+            # Same request as the reference free-free deck (case-control echo).
             "MEFFMASS(PLOT,PRINT,GRID=0,PARTFAC,MEFFM,FRACSUM,SUMMARY) = YES",
         ]
         bulk = ["PARAM,POST,-1", "PARAM,AUTOSPC,YES", "PARAM,GRDPNT,0",
@@ -238,7 +238,7 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
 
     if "thermal" in which:
         cc = [
-            # qrg ~26012: LAGRAN lets rigid elements expand with their ALPHA (decision #4).
+            # qrg ~26012: LAGRAN lets rigid elements expand with their ALPHA (design decision D4).
             "RIGID = LAGRAN",
             f"SPC = {ids.mount_spc}",
             # qrg ~29940 remark 8: with TEMP(INIT) defined, strain = alpha*(T_load - T_init).

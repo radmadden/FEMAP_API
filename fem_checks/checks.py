@@ -117,7 +117,7 @@ def check_freefree(f06: Optional[F06], th, autospc: bool) -> CheckResult:
         else "; ".join(why)
 
     details = [
-        f"Criterion: max(f1..f6) / f7 <= {th.rbm_ratio:.0e} (decision #1). Result {ratio:.2e}.",
+        f"Criterion: max(f1..f6) / f7 <= {th.rbm_ratio:.0e} (design decision D1). Result {ratio:.2e}.",
         "FEMCI's absolute 1e-4 Hz limit (femci ~2095) is deliberately not applied: it doesn't "
         "scale with model size or units, and the 6th/7th separation is what shows grounding.",
         "GROUNDCHECK passes only if every requested set (G, N"
@@ -242,7 +242,7 @@ def check_constrained(f06: Optional[F06], spc_label: str) -> CheckResult:
         cum_rows = [["Cumulative (all modes found)"] + [_e(last.cumsum.get(d), "{:.3f}") for d in dirs]]
     n_low = sum(1 for m in modes if abs(m.cycles) < 1.0)
     summary = (f"{len(modes)} modes, first {abs(modes[0].cycles):.4g} Hz on {spc_label}; "
-               "report only (no floor, decision Q4)")
+               "report only (no frequency floor, design decision D5)")
     details = ["No pass/fail: gimbals can legitimately have near-zero bearing modes."]
     if n_low:
         details.append(f"{n_low} mode(s) below 1 Hz. Confirm they are intended mechanisms "
@@ -332,7 +332,7 @@ def check_unit_disp(f06: Optional[F06], fields: dict, force_peaks: dict, mount_x
         f"Displacement field: max |u - u_rigid| / max |u_rigid| <= {th.ud_disp_rel:.0e}; rotations "
         "checked only on grids with rotational stiffness (shells, bars, beams, bushes, RBE2 independents).",
         "Element forces are judged at element centroids. CQUAD4 corner (bilinear) values are listed "
-        "separately: on the user's model they reach 20-80 lbf/in under a 1 rad rigid rotation while "
+        "separately: on the reference model they reach 20-80 lbf/in under a 1 rad rigid rotation while "
         "centroid values are ~1e-7, so they are a recovery artifact, not grounding.",
     ]
     tables = [
@@ -488,12 +488,12 @@ def check_thermal(f06: Optional[F06], field: Optional[R.Field], stresses: list, 
                          ", ".join(sorted(touch)[:4]) or "-"])
     details = [
         f"Every MAT CTE set to {alpha:g}, TREF 0; rigid elements given ALPHA {alpha:g} with "
-        "RIGID=LAGRAN (decision #4); TEMP(INIT)=0, TEMP(LOAD)=1 so dT = 1 (qrg ~29940).",
+        "RIGID=LAGRAN (design decision D4); TEMP(INIT)=0, TEMP(LOAD)=1 so dT = 1 (qrg ~29940).",
         "Theory: u = alpha dT (r - r_mount), no rotation, zero stress (exact for any element mix "
         "when alpha is uniform). Replaces the Book's THDEF program (femci ~2285).",
         f"Stress scale E_max alpha dT = {sig_scale:.4g} (E_max = {e_max:.4g}). Max rotation "
         f"{r_max:.2e} rad (expect ~0).",
-        "A PASS here assumes your production thermal runs also use RIGID=LAGRAN with ALPHA on "
+        "A PASS here assumes the production thermal runs also use RIGID=LAGRAN with ALPHA on "
         "rigid elements; under the default RIGID=LINEAR rigid elements do not expand.",
     ]
     if react[0] is not None:
@@ -639,7 +639,7 @@ def check_model_summary(info, mount, base: int, gravity_spc_label: str,
         f"{info.n_masses} mass elements.",
         f"Bounding box {np.round(info.bbox_min, 4).tolist()} to {np.round(info.bbox_max, 4).tolist()}, "
         f"diagonal L = {info.size:.4g}.",
-        f"Mount grid {mount.grid} ({'auto-picked nearest the CG' if mount.auto else 'user-entered'}) at "
+        f"Mount grid {mount.grid} ({'auto-picked nearest the CG' if mount.auto else 'entered in the settings'}) at "
         f"{np.round(mount.xyz, 4).tolist()}, {mount.distance_to_cg:.4g} from the pyNastran CG "
         f"({100 * mount.distance_fraction:.1f}% of L).",
         f"Gravity mount: {gravity_spc_label}. Constrained modes: {real_spc_label}.",

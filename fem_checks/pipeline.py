@@ -95,7 +95,7 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
 
     # STEP 3: mount grid ------------------------------------------------------
     mount = M.choose_mount(model, info, s.mount_grid)
-    say(f"Mount grid {mount.grid} ({'auto' if mount.auto else 'user'}), "
+    say(f"Mount grid {mount.grid} ({'auto' if mount.auto else 'entered'}), "
         f"{mount.distance_to_cg:.4g} from CG ({100 * mount.distance_fraction:.1f}% of model size)")
     base = M.reserved_base(model)
     ids = D.DeckIds(base)
@@ -215,7 +215,7 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
         "Date": f"{_dt.datetime.now():%Y-%m-%d %H:%M}",
         "Nastran version(s)": ", ".join(versions) or "-",
         "Units": f"{s.units} (g = {unit['g']:g})",
-        "Mount grid": f"{mount.grid} ({'auto' if mount.auto else 'user'}), "
+        "Mount grid": f"{mount.grid} ({'auto' if mount.auto else 'entered'}), "
                       f"{mount.distance_to_cg:.4g} from CG",
         "Model title / subtitle": f"{info.trace.get('title', '-')} / {info.trace.get('subtitle', '-')}",
         "FEMAP model": info.trace.get("femap_model", "-"),
@@ -230,7 +230,7 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
     try:
         summary.report = RP.build_pdf(pdf, header, results, charts, messages, summary.runs)
     except PermissionError:
-        # Windows locks a PDF that is open in a viewer (the user's first full run stopped
+        # Windows locks a PDF that is open in a viewer (an early full run stopped
         # here). Write a time-stamped copy instead of losing the whole run.
         alt = out / f"fem_checks_report_{_dt.datetime.now():%Y%m%d_%H%M%S}.pdf"
         say(f"  {pdf.name} is open in another program (locked); writing {alt.name} instead")

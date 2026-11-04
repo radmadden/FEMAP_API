@@ -1,13 +1,13 @@
 """Run settings for the FEM validation checks.
 
-Everything the user supplies (GUI form or JSON file) lives in one ``Settings``
+Every run input (GUI form or JSON file) lives in one ``Settings``
 dataclass. The same JSON drives a command-line run, so a GUI run can be repeated
 exactly with ``python -m fem_checks <folder>/fem_checks.json``.
 
 Unit systems
 ------------
 The FEMCI Book thresholds are in in-lb (0.1 lb force, 1.0 in-lb moment, femci ~1965)
-and its gravity is 386.4 in/s^2 with PARAM,WTMASS,0.00259 (femci ~2272). The user
+and its gravity is 386.4 in/s^2 with PARAM,WTMASS,0.00259 (femci ~2272). The analyst
 picks a unit system; g and the force/moment thresholds follow from it so the same
 physical limits apply in any units.
 """
@@ -70,9 +70,9 @@ class MassTargets:
 
 @dataclass
 class Thresholds:
-    """Pass/fail limits. Defaults are the decisions locked in plan-fem-checks.md."""
+    """Pass/fail limits. Defaults follow the design decisions in plan-fem-checks.md."""
     rbm_ratio: float = 1e-4          # max rigid-body freq / first elastic freq (FEMCI's
-                                     # absolute 1e-4 Hz is not used: user decision, plan #1)
+                                     # absolute 1e-4 Hz is not used: design decision D1)
     gravity_rel: float = 1e-4        # OLOAD vs SPCFORCE, and OLOAD vs mass*g
     ud_disp_rel: float = 1e-3        # unit-disp field vs rigid-body motion
     thermal_disp_rel: float = 1e-3   # thermal field vs alpha*dT*(r - r_mount)

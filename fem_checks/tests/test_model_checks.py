@@ -1,5 +1,5 @@
 """Model handling, deck writing and check logic on the synthetic test deck, plus the
-check evaluations that can run on the user's real .f06 files."""
+check evaluations that can run on the reference .f06 files."""
 from pathlib import Path
 
 import numpy as np
@@ -116,7 +116,7 @@ def test_freefree_check_on_sample():
     res = C.check_freefree(parse_f06(REPO / "freefree_check-0000.f06"), Thresholds(), True)
     assert res.status == "PASS"
     assert res.data["ratio"] == pytest.approx(4.286750e-04 / 1.330038e02)
-    assert "n_over_abs" not in res.data   # Book absolute limit dropped (plan decision #1)
+    assert "n_over_abs" not in res.data   # Book absolute limit not used (design decision D1)
     strict = Thresholds(rbm_ratio=1e-7)
     assert C.check_freefree(parse_f06(REPO / "freefree_check-0000.f06"), strict, True).status == "FAIL"
 
@@ -161,9 +161,9 @@ def test_settings_roundtrip(tmp_path):
 REAL_DECK = REPO / "1G_unit_load_check-0000.dat"
 
 
-@pytest.mark.skipif(not REAL_DECK.exists(), reason="user's full model deck not in repo")
+@pytest.mark.skipif(not REAL_DECK.exists(), reason="reference model deck not in repo")
 def test_real_deck_trace_and_roundtrip(tmp_path):
-    """The user's full model: traceability fields, mount checks, and a lossless bulk rewrite."""
+    """The reference model: traceability fields, mount checks, and a lossless bulk rewrite."""
     tr = M.read_trace(REAL_DECK)
     assert tr["title"] == "1G UNIT LOAD CHECK" and tr["subtitle"] == "BD IRAD V2"
     assert tr["femap_model"].endswith("BD_IRAD_FEMv4.modfem")
@@ -192,7 +192,7 @@ def test_setup_python_version_gate():
     assert not ok and "3.12" in msg
 
 
-def test_setup_vscode_merge_keeps_user_values(tmp_path):
+def test_setup_vscode_merge_keeps_existing_values(tmp_path):
     import json
     from fem_checks.setup_env import write_vscode
     vs = tmp_path / ".vscode"
@@ -215,7 +215,7 @@ def test_setup_vscode_merge_keeps_user_values(tmp_path):
 
 
 def test_setup_find_nastran(tmp_path):
-    """User's first run: nastranw.exe (a launcher) was picked over nastran.exe."""
+    """Regression: nastranw.exe (a launcher) must never be picked over nastran.exe."""
     from fem_checks.setup_env import find_nastran
     from fem_checks.runner import solver_exe
     for ver in ("2512", "2606"):
@@ -230,7 +230,7 @@ def test_setup_find_nastran(tmp_path):
 
 
 def test_long_case_control_lines_do_not_stop_bulk_write(tmp_path):
-    """First user run: 'AssertionError: len(msg)=77' from pyNastran re-writing a long
+    """Regression: 'AssertionError: len(msg)=77' from pyNastran re-writing a long
     FEMAP case-control line. bulk_text must not write case control at all."""
     from fem_checks.tests.make_test_model import DECK, _plate
     g, q = _plate()

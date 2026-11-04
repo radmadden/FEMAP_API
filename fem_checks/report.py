@@ -233,7 +233,7 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
                        [2.6 * inch, 0.8 * inch, width - 3.4 * inch], status_col=1))
     story.append(Paragraph(
         "PASS/FAIL criteria follow FEMCI 'The Book' validity checks (femci ~1880) with the "
-        "decisions recorded in plan-fem-checks.md. INFO checks are report-only.", small))
+        "design decisions in plan-fem-checks.md. INFO checks are report-only.", small))
 
     for c in check_results:
         story.append(PageBreak())

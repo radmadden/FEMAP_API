@@ -58,7 +58,7 @@ def solver_exe(exe: str, log: Callable[[str], None] = print) -> str:
 
     nastranw.exe (next to nastran.exe in the Siemens bin folder) is a launcher: it
     returns immediately with exit code 0 while the job runs, or doesn't, elsewhere.
-    The first user run used it and got "no .f06 written" in under a second for every
+    An early live run used it and got "no .f06 written" in under a second for every
     deck. If it's selected and nastran.exe sits beside it, use nastran.exe instead."""
     p = Path(exe)
     if p.name.lower() == "nastranw.exe":

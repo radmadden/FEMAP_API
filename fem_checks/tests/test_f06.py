@@ -1,4 +1,4 @@
-"""Parser tests against the user's real Simcenter .f06 files in the repo root.
+"""Parser tests against the reference Simcenter .f06 files in the repo root.
 Expected numbers are copied from those files by hand."""
 from pathlib import Path
 
