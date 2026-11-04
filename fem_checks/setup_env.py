@@ -163,10 +163,18 @@ def install_extensions() -> None:
 
 # ------------------------------------------------------------------ 5 Nastran
 def find_nastran(globs=NASTRAN_GLOBS) -> list[str]:
+    """nastran.exe candidates, newest install folder first.
+
+    Only nastran.exe is returned. The same bin folder also holds nastranw.exe, a
+    launcher that hands the job off and returns at once (exit code 0, no .f06 yet).
+    The first user run picked it up because it sorts ahead of nastran.exe, and every
+    check came back ERROR in under a second."""
     found = []
     for g in globs:
-        found += sorted(glob.glob(g), reverse=True)  # newest version folder first
-    return [f for f in found if Path(f).name.lower() in ("nastran.exe", "nastranw.exe")] or found
+        for f in sorted(glob.glob(g), reverse=True):  # newest version folder first
+            if Path(f).name.lower() == "nastran.exe" and f not in found:
+                found.append(f)
+    return found
 
 
 def prefill_gui(nastran: str) -> None:

@@ -212,13 +212,18 @@ def test_setup_vscode_merge_keeps_user_values(tmp_path):
 
 
 def test_setup_find_nastran(tmp_path):
+    """User's first run: nastranw.exe (a launcher) was picked over nastran.exe."""
     from fem_checks.setup_env import find_nastran
-    for ver in ("2412", "2512"):
-        d = tmp_path / f"FEMAP {ver}" / "NASTRAN" / "bin"
+    from fem_checks.runner import solver_exe
+    for ver in ("2512", "2606"):
+        d = tmp_path / f"Femap {ver}" / "NASTRAN" / "bin"
         d.mkdir(parents=True)
         (d / "nastran.exe").write_text("")
-    found = find_nastran([str(tmp_path / "FEMAP*" / "NASTRAN" / "bin" / "nastran*.exe")])
-    assert "2512" in found[0]   # newest first
+        (d / "nastranw.exe").write_text("")
+    found = find_nastran([str(tmp_path / "Femap*" / "NASTRAN" / "bin" / "nastran*.exe")])
+    assert "2606" in found[0] and all(Path(f).name == "nastran.exe" for f in found)
+    w = tmp_path / "Femap 2606" / "NASTRAN" / "bin" / "nastranw.exe"
+    assert Path(solver_exe(str(w), lambda m: None)).name == "nastran.exe"
 
 
 def test_long_case_control_lines_do_not_stop_bulk_write(tmp_path):

@@ -53,18 +53,37 @@ def clear_outputs(deck: Path) -> list[str]:
     return removed
 
 
+def solver_exe(exe: str, log: Callable[[str], None] = print) -> str:
+    """Return the executable that runs a job in the foreground.
+
+    nastranw.exe (next to nastran.exe in the Siemens bin folder) is a launcher: it
+    returns immediately with exit code 0 while the job runs, or doesn't, elsewhere.
+    The first user run used it and got "no .f06 written" in under a second for every
+    deck. If it's selected and nastran.exe sits beside it, use nastran.exe instead."""
+    p = Path(exe)
+    if p.name.lower() == "nastranw.exe":
+        alt = p.with_name("nastran.exe")
+        if alt.is_file():
+            log(f"  note: {p.name} is a launcher that doesn't wait for the job; using {alt.name}")
+            return str(alt)
+        log(f"  WARNING: {p.name} returns before the job finishes; select nastran.exe instead")
+    return str(exe)
+
+
 def run_nastran(exe: str, deck: Path, args: list, timeout: Optional[float] = None,
                 log: Callable[[str], None] = print) -> RunResult:
     deck = Path(deck)
+    exe = solver_exe(exe, log)
     clear_outputs(deck)
     cmd = [str(exe), deck.name, *args]
     log(f"  running: {' '.join(cmd)}  (in {deck.parent})")
     t0 = time.time()
-    rc, err = None, None
+    rc, err, console = None, None, ""
     try:
         proc = subprocess.run(cmd, cwd=str(deck.parent), capture_output=True, text=True,
-                              timeout=timeout)
+                              errors="replace", timeout=timeout)
         rc = proc.returncode
+        console = (proc.stdout or "") + (proc.stderr or "")
     except subprocess.TimeoutExpired:
         err = f"Nastran did not finish within {timeout} s"
     except OSError as exc:
@@ -74,5 +93,13 @@ def run_nastran(exe: str, deck: Path, args: list, timeout: Optional[float] = Non
     op2 = _find(deck.parent, deck.stem, ".op2")
     if err is None and f06 is None:
         err = f"no .f06 written (return code {rc}); see {deck.stem}.f04/.log"
+        # Whatever Nastran printed is usually the best clue (license, path, bad keyword).
+        tail = [x for x in console.strip().splitlines() if x.strip()][-15:]
+        if tail:
+            log("  Nastran console output (last lines):")
+            for x in tail:
+                log("    " + x)
+        else:
+            log("  Nastran printed nothing to the console.")
     return RunResult(str(deck), str(f06) if f06 else None, str(op2) if op2 else None,
                      rc, dt, err)
