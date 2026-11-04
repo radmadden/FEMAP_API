@@ -104,7 +104,7 @@ Const DS_TITLE_PFX   As String = "ThermalCloud"
 Const LS_TITLE_PFX   As String = "ThermalMap"
 
 ' ---- curved-surface (sag) settings ----
-Const SAG_MODE As Long       = 1      ' 0 = flat, 1 = conic (ROC/K), 2 = geometry (Surface ID)
+Const SAG_MODE As Long       = 1      ' DEFAULT offered at the run-time prompt: 0 flat, 1 conic, 2 geometry
 Const Z_SIGN   As Double     = -1.0   ' depth direction into the substrate (confirm on first run)
 Const MIRROR_ROC As Double   = 0.0    ' vertex radius of curvature; sign sets convex/concave; 0 = flat
 Const MIRROR_K   As Double   = 0.0    ' conic constant: 0 sphere, -1 parabola, <-1 hyperbola, >0 oblate
@@ -197,29 +197,49 @@ Sub Main
     '   The sag only shifts the lookup z (down the optical axis); x,y are kept.
     '   Module-level gApp/gCSys/gMode/gROC/gK/gSurf feed the SagFunc helper.
     '--------------------------------------------------------------------------
-    If SAG_MODE < 0 Or SAG_MODE > 2 Then
-        MsgBox "SAG_MODE must be 0 (flat), 1 (conic) or 2 (geometry)."
-        Exit Sub
-    End If
     Set gApp = App
     gCSys = surfCSys
-    gMode = SAG_MODE
     gROC = MIRROR_ROC
     gK = MIRROR_K
+
+    ' Ask which sag mode to use this run (defaults to the SAG_MODE constant).
+    Dim mstr As String
+    mstr = InputBox("Surface sag mode:" & vbCrLf & _
+                    "  0 = flat (no sag)" & vbCrLf & _
+                    "  1 = conic (enter ROC and K)" & vbCrLf & _
+                    "  2 = geometry (project onto a Surface)", _
+                    "Curved surface - mode", CStr(SAG_MODE))
+    If mstr = "" Then Exit Sub
+    If Not IsNumeric(mstr) Then
+        MsgBox "Sag mode must be 0, 1, or 2."
+        Exit Sub
+    End If
+    gMode = CLng(mstr)
+    If gMode < 0 Or gMode > 2 Then
+        MsgBox "Sag mode must be 0, 1, or 2."
+        Exit Sub
+    End If
 
     Dim surfID As Long
     surfID = 0
     Dim sstr As String
-    If SAG_MODE = 1 Then
-        sstr = InputBox("Conic ROC (vertex radius of curvature; sign sets convex/concave; 0 = flat):", _
+    If gMode = 1 Then
+        ' (For a truly flat mirror, pick mode 0 at the previous prompt instead.)
+        sstr = InputBox("Conic ROC (vertex radius of curvature; sign sets convex/concave):", _
                         "Curved surface - conic", Format(MIRROR_ROC, "0.0####"))
         If sstr = "" Or Not IsNumeric(sstr) Then Exit Sub
         gROC = CDbl(sstr)
-        sstr = InputBox("Conic constant K (0 sphere, -1 parabola, <-1 hyperbola, >0 oblate):", _
-                        "Curved surface - conic", Format(MIRROR_K, "0.0####"))
-        If sstr = "" Or Not IsNumeric(sstr) Then Exit Sub
-        gK = CDbl(sstr)
-    ElseIf SAG_MODE = 2 Then
+        gK = 0#
+        If gROC = 0# Then
+            ' ROC = 0 means no curvature -> treat as flat; K is irrelevant, so skip it.
+            gMode = 0
+        Else
+            sstr = InputBox("Conic constant K (0 sphere, -1 parabola, <-1 hyperbola, >0 oblate):", _
+                            "Curved surface - conic", Format(MIRROR_K, "0.0####"))
+            If sstr = "" Or Not IsNumeric(sstr) Then Exit Sub
+            gK = CDbl(sstr)
+        End If
+    ElseIf gMode = 2 Then
         sstr = InputBox("Optical Surface ID to project each node onto:", "Curved surface - geometry", "1")
         If sstr = "" Or Not IsNumeric(sstr) Then Exit Sub
         surfID = CLng(sstr)
@@ -534,9 +554,9 @@ Sub Main
 
     ' Sag-mode label for the report
     Dim modeStr As String
-    If SAG_MODE = 0 Then modeStr = "flat (no sag)"
-    If SAG_MODE = 1 Then modeStr = "conic  ROC=" & Format(gROC, "0.0###") & "  K=" & Format(gK, "0.0###")
-    If SAG_MODE = 2 Then modeStr = "geometry  Surface " & surfID
+    If gMode = 0 Then modeStr = "flat (no sag)"
+    If gMode = 1 Then modeStr = "conic  ROC=" & Format(gROC, "0.0###") & "  K=" & Format(gK, "0.0###")
+    If gMode = 2 Then modeStr = "geometry  Surface " & surfID
 
     ' Fast-mirror warning: rim surface tilt from a finite difference of the sag,
     ' and the implied axial-vs-normal depth error (~ 1 - cos(theta)).
@@ -549,7 +569,7 @@ Sub Main
     Dim sB As Double
     thetaDeg = 0#
     errPct = 0#
-    If SAG_MODE <> 0 And maxR > 0# Then
+    If gMode <> 0 And maxR > 0# Then
         dR = maxR * 0.01
         If dR <= 0# Then dR = 0.001
         sA = SagFunc(maxR, 0#)
@@ -573,7 +593,7 @@ Sub Main
         msg = msg & vbCrLf & "** WARNING: " & nOut & " node(s) shifted outside the cloud depth range" & _
               " (clamped to the end value). Check Z_SIGN and the vertex CSys. **"
     End If
-    If SAG_MODE <> 0 And thetaDeg > SLOPE_WARN_DEG Then
+    If gMode <> 0 And thetaDeg > SLOPE_WARN_DEG Then
         msg = msg & vbCrLf & "** WARNING: rim surface tilt " & Format(thetaDeg, "0.0") & " deg (~" & _
               Format(errPct, "0.00") & "% axial-depth error) -- fast mirror; the axial-depth rule is approximate here. **"
     End If
