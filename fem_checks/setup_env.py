@@ -128,6 +128,9 @@ def write_vscode(repo: Path = REPO) -> None:
         "python.testing.unittestEnabled": False,
         "python.testing.pytestArgs": ["fem_checks/tests"],
         "jupyter.notebookFileRoot": "${workspaceFolder}/fem_checks",
+        # The Problems tab otherwise fills with Pylance type warnings about pyNastran
+        # (user asked how to make them go away). Real errors still show.
+        "python.analysis.typeCheckingMode": "off",
         "files.exclude": {"**/__pycache__": True, "**/.pytest_cache": True},
     })
     _merge(vs / "extensions.json", {"recommendations": EXTENSIONS})

@@ -406,10 +406,132 @@ class F06:
     epsilon: list
     singularities: list
     messages: list
+    excerpts: dict = field(default_factory=dict)  # see extract_excerpts()
 
     @property
     def fatals(self) -> list:
         return [m for m in self.messages if m.kind == "FATAL"]
+
+
+# ------------------------------------------------------------ verbatim excerpts
+def _banner_lines(lines: list[str]) -> set[str]:
+    """Title/subtitle/label lines Nastran repeats under every page header. Found as the
+    non-blank lines right after page headers that recur on 3+ pages."""
+    counts: dict[str, int] = {}
+    for i, line in enumerate(lines):
+        # Only the line directly under the header (the SUBTITLE/LABEL line, e.g.
+        # "BD IRAD V2"). Table headings sit further down, after a "0" line, and must stay.
+        if _is_page_header(line) and i + 1 < len(lines):
+            st = lines[i + 1].strip()
+            if st and st not in ("0",):
+                counts[st] = counts.get(st, 0) + 1
+    return {k for k, n in counts.items() if n >= 3}
+
+
+def _clean(block: list[str], banner: set[str]) -> list[str]:
+    """Strip page breaks, repeated banner lines and the column-1 carriage-control
+    character ('0'/'1'), keep everything else exactly as Nastran printed it."""
+    out = []
+    for line in block:
+        if _is_page_header(line) or line.strip() in banner or line.strip() in ("0", "1"):
+            continue
+        if line[:1] in ("0", "1"):
+            line = " " + line[1:]
+        line = line.rstrip()
+        if line == "" and (not out or out[-1] == ""):
+            continue
+        out.append(line)
+    while out and out[-1] == "":
+        out.pop()
+    # drop common leading indent so the block fits the page
+    ind = min((len(x) - len(x.lstrip()) for x in out if x.strip()), default=0)
+    return [x[ind:] for x in out]
+
+
+def extract_excerpts(lines: list[str]) -> dict[str, list[list[str]]]:
+    """Verbatim .f06 blocks for the report, so readers see the numbers exactly as Nastran
+    printed them (user request: 'reprint the ground checks like the f06').
+
+    Keys -> list of blocks (each block = list of text lines):
+      groundcheck   one block per DOF set (UIM 7570 header through the 6 PASS/FAIL rows)
+      mass          one block per WEIGHTCHECK / grid point weight generator printout
+      eigenvalues   the REAL EIGENVALUES table (all pages joined)
+      meff          each MODAL EFFECTIVE MASS FRACTION table
+      oload, spcforce   each resultant table (all subcases)
+      epsilon       the UIM 5293 EPSILON table(s)"""
+    banner = _banner_lines(lines)
+    out: dict[str, list] = {k: [] for k in ("groundcheck", "mass", "eigenvalues", "meff",
+                                            "oload", "spcforce", "epsilon")}
+    n = len(lines)
+    for i, line in enumerate(lines):
+        if _GC_HEAD.search(line):
+            a = i - 1 if i > 0 and "7570" in lines[i - 1] else i
+            rows, b = 0, i
+            for j in range(i + 1, min(i + 20, n)):
+                if _GC_ROW.match(lines[j]):
+                    rows += 1
+                    b = j
+                    if rows == 6:
+                        break
+            out["groundcheck"].append(_clean(lines[a:b + 1], banner))
+        elif _MB_HEAD.search(line):
+            b = i
+            for j in range(i + 1, min(i + 90, n)):
+                if j > i + 1 and _MB_HEAD.search(lines[j]):
+                    break
+                st = lines[j].strip()
+                is_matrix_row = st.startswith("*") and st.endswith("*") and not st.startswith("***")
+                if is_matrix_row or _MB_MASSROW.match(lines[j]) or "REFERENCE POINT" in st \
+                        or "DEGREES OF FREEDOM SET" in st or st in ("M O", "S", "I(S)", "I(Q)", "Q") \
+                        or "MASS AXIS" in st or "DIRECTION" == st or "CHANGE WITH" in st:
+                    b = j
+                elif st.startswith("NUMBER OF SOLVES") or "R E A L   E I G E N" in st:
+                    break  # next section; the block ends at the last matrix row seen
+            if b > i:
+                out["mass"].append(_clean(lines[i:b + 1], banner))
+        elif _EIG_HEAD.search(line):
+            b = i
+            for j in range(i + 1, n):
+                if _EIG_ROW.match(lines[j]):
+                    b = j
+                elif _STOP.search(lines[j]) and not _is_page_header(lines[j]):
+                    break
+            out["eigenvalues"].append(_clean(lines[i:b + 1], banner))
+        elif _MEF_HEAD.match(line):
+            b = i
+            for j in range(i + 1, n):
+                if _MEF_ROW.match(lines[j]):
+                    b = j
+                elif j > i + 3 and (_is_page_header(lines[j]) or _STOP.search(lines[j])):
+                    break
+            out["meff"].append(_clean(lines[i:b + 1], banner))
+        elif _RES_HEAD.match(line):
+            kind = _RES_HEAD.match(line).group(1).lower()
+            if kind not in out:
+                continue
+            a = i - 1 if i > 0 and "RESULTANTS ABOUT" in lines[i - 1] else i
+            b = i
+            for j in range(i + 1, n):
+                if _RES_TOT.match(lines[j]) or re.match(r"^\s+(FX|FY|FZ|MX|MY|MZ)\s", lines[j]) \
+                        or _RES_SUB.match(lines[j]):
+                    b = j
+                elif _RES_HEAD.match(lines[j]) or _RES_STOP.search(lines[j]):
+                    break
+            out[kind].append(_clean(lines[a:b + 1], banner))
+        elif _EPS_HEAD.search(line):
+            a = i
+            for k in range(i - 1, max(i - 4, -1), -1):
+                if "5293" in lines[k]:
+                    a = k
+                    break
+            b = i
+            for j in range(i + 1, min(i + 400, n)):
+                if _EPS_ROW.match(lines[j]):
+                    b = j
+                elif b > i and (lines[j].strip() == "" or _is_page_header(lines[j]) or _STOP.search(lines[j])):
+                    break
+            out["epsilon"].append(_clean(lines[a:b + 1], banner))
+    return out
 
 
 def parse_f06(path) -> F06:
@@ -429,4 +551,5 @@ def parse_f06(path) -> F06:
         epsilon=parse_epsilon(lines),
         singularities=parse_singularities(lines),
         messages=parse_messages(lines),
+        excerpts=extract_excerpts(lines),
     )

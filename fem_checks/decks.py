@@ -16,16 +16,37 @@ Reserved IDs (all offsets from ``base``, see model.reserved_base):
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
+# key -> (number, suffix). File name = "<nn>_<model stem>_<suffix>.dat", e.g. the model
+# gimbal_assy_full.dat gives 01_gimbal_assy_full_freefree.dat (user request: the check
+# files carry the original model name).
 DECK_NAMES = {
-    "freefree": "01_freefree.dat",
-    "constrained_modes": "02_constrained_modes.dat",
-    "unit_disp": "03_unit_disp.dat",
-    "gravity": "04_gravity.dat",
-    "thermal": "05_thermal.dat",
+    "freefree": ("01", "freefree"),
+    "constrained_modes": ("02", "constrained_modes"),
+    "unit_disp": ("03", "unit_disp"),
+    "gravity": ("04", "gravity"),
+    "thermal": ("05", "thermal"),
 }
+
+
+def safe_stem(deck_path) -> str:
+    """Model file name without extension, made safe for a Nastran job name: spaces and
+    anything other than letters, digits, '-', '_' and '.' become '_'."""
+    stem = Path(str(deck_path)).stem
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", stem).strip("_") or "model"
+
+
+def deck_filename(key: str, stem: str) -> str:
+    nn, suffix = DECK_NAMES[key]
+    return f"{nn}_{stem}_{suffix}.dat"
+
+
+def bulk_filenames(stem: str) -> tuple[str, str]:
+    """(bulk data, thermal bulk data) include-file names for this model."""
+    return f"{stem}_bulk.bdf", f"{stem}_bulk_thermal.bdf"
 
 
 @dataclass
@@ -121,8 +142,7 @@ def _deck(sol: int, check_name: str, global_cc: list, subcases: list, bulk: list
 def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
                 gravity_spc: int, real_spc: int, g: float, n_free: int, n_con: int,
                 autospc_free: bool, carried: list, trace: dict | None = None,
-                bulk_file: str = "model_bulk.bdf",
-                thermal_bulk_file: str = "model_bulk_thermal.bdf") -> dict[str, Path]:
+                stem: str = "model") -> dict[str, Path]:
     """Write the decks named in ``which`` (keys of DECK_NAMES). Returns {key: path}.
 
     mount:       the kinematic-mount grid (auto-picked or user-entered). The SPC1 card is
@@ -131,6 +151,7 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
     gravity_spc: SPC set for the gravity check (ids.mount_spc or the real set, decision #2).
     real_spc:    the model's real boundary-condition set, used by constrained modes."""
     trace = trace or {}
+    bulk_file, thermal_bulk_file = bulk_filenames(stem)
     out_dir = Path(out_dir)
     paths = {}
     mount_spc_card = f"SPC1,{ids.mount_spc},123456,{mount}"
@@ -152,7 +173,7 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
             "PARAM,GRDPNT,0",
             f"EIGRL,{ids.eigrl_free},,,{n_free}",
         ]
-        p = out_dir / DECK_NAMES["freefree"]
+        p = out_dir / deck_filename("freefree", stem)
         p.write_text(_deck(103, "FEM CHECK 01 FREE-FREE MODES + GROUNDCHECK", cc,
                            [(1, ["LABEL = FEM CHECK 01 FREE-FREE, NO SPC"])], bulk, bulk_file,
                            carried, trace))
@@ -168,7 +189,7 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
         ]
         bulk = ["PARAM,POST,-1", "PARAM,AUTOSPC,YES", "PARAM,GRDPNT,0",
                 f"EIGRL,{ids.eigrl_con},,,{n_con}"]
-        p = out_dir / DECK_NAMES["constrained_modes"]
+        p = out_dir / deck_filename("constrained_modes", stem)
         p.write_text(_deck(103, "FEM CHECK 02 CONSTRAINED MODES", cc,
                            [(1, [f"LABEL = FEM CHECK 02 CONSTRAINED, SPC {real_spc}"])], bulk,
                            bulk_file, carried, trace))
@@ -188,7 +209,7 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
         # qrg ~119845 remark 3: SPCD DOFs must also be on an SPC1 selected by SPC.
         bulk = ["PARAM,POST,-1", "PARAM,AUTOSPC,YES", mount_spc_card]
         bulk += [f"SPCD,{ids.spcd(k)},{mount},{k},1.0" for k in range(1, 7)]
-        p = out_dir / DECK_NAMES["unit_disp"]
+        p = out_dir / deck_filename("unit_disp", stem)
         p.write_text(_deck(101, "FEM CHECK 03 UNIT ENFORCED DISPLACEMENT", cc, subs,
                            bulk, bulk_file, carried, trace))
         paths["unit_disp"] = p
@@ -210,7 +231,7 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
         bulk += [f"GRAV,{ids.grav(k)},0,{g:.6g},{v[0]},{v[1]},{v[2]}" for k, v in zip(range(1, 4), vec)]
         if need_mount_card:
             bulk.append(mount_spc_card)
-        p = out_dir / DECK_NAMES["gravity"]
+        p = out_dir / deck_filename("gravity", stem)
         p.write_text(_deck(101, "FEM CHECK 04 UNIT GRAVITY", cc, subs, bulk, bulk_file,
                            carried, trace))
         paths["gravity"] = p
@@ -230,7 +251,7 @@ def write_decks(out_dir: Path, which: list[str], ids: DeckIds, mount: int,
                      f"TEMPERATURE(LOAD) = {ids.temp_load}"])]
         bulk = ["PARAM,POST,-1", "PARAM,AUTOSPC,YES", mount_spc_card,
                 f"TEMPD,{ids.temp_init},0.0", f"TEMPD,{ids.temp_load},1.0"]
-        p = out_dir / DECK_NAMES["thermal"]
+        p = out_dir / deck_filename("thermal", stem)
         p.write_text(_deck(101, "FEM CHECK 05 THERMAL SOAK", cc, subs, bulk,
                            thermal_bulk_file, carried, trace))
         paths["thermal"] = p

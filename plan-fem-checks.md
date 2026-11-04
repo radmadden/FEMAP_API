@@ -69,6 +69,32 @@ Research: `research-fem-checks.md`. Reference docs: `FEMCI-The-Book.pdf` (femci 
   and it refused the user's own mount 199999. The rule is now "no permanent constraint
   (GRID PS field)".
 
+## Changes from the first live runs (2026-11-04)
+
+The first runs on the user's workstation found these; all are fixed, with tests:
+- **pyNastran case-control assert:** pyNastran refuses FEMAP case-control lines over about
+  68 characters (`len(msg)=77`). The bulk data is now written in pyNastran's punch mode,
+  i.e. bulk only.
+- **Wrong Nastran executable:** setup picked `nastranw.exe`, a launcher that returns
+  immediately. Only `nastran.exe` is used now, and Nastran's console output is logged
+  when no .f06 appears.
+- **Locked report:** a report open in a PDF viewer is locked; the tool now writes a
+  time-stamped copy instead of stopping.
+
+User requests after the first full run:
+- **Report shows all the data.** Each check section now has:
+  - full tables: every eigenvalue column, OLOAD vs SPCFORCE for every component per
+    subcase with their sum, GROUNDCHECK per set with its limit, the mount-grid
+    displacement per subcase, and all SPCFORCE totals;
+  - the **verbatim .f06 blocks** the verdict was read from (GROUNDCHECK, WEIGHTCHECK,
+    eigenvalues, MEFFMASS, resultants, EPSILON), in a fixed-width font;
+  - same-color shading on the values a criterion compares (`checks.Table.highlight`,
+    colors in `report.HIGHLIGHT`).
+- **File names carry the model name:** `01_<model>_freefree.dat` ...
+  `05_<model>_thermal.dat`, plus `<model>_bulk.bdf` / `<model>_bulk_thermal.bdf`. Spaces
+  and odd characters become `_` (`decks.safe_stem`).
+- **VS Code Problems tab:** setup now sets `python.analysis.typeCheckingMode: off`.
+
 ## Decisions to confirm (all 8 approved by the user 2026-11-04; #8 = model deck, pending upload)
 
 1. **Rigid-body mode criterion.** Your sample model's rigid-body modes are 1.0e-4 to
@@ -255,7 +281,7 @@ GUI fields, saved to `fem_checks.json` next to the deck:
 Folder `<deck>_fem_checks\`:
 - `fem_checks.json`: settings used, so the run can be repeated.
 - `model_bulk.bdf`, `model_bulk_thermal.bdf`.
-- `01_freefree.dat` .. `05_thermal.dat`, each with its `.f06/.op2/.f04/.log`.
+- `01_<model>_freefree.dat` .. `05_<model>_thermal.dat`, each with its `.f06/.op2/.f04/.log`.
 - `fem_checks_report.pdf`:
   - Page 1: model name, date, Nastran version, units, mount grid and its CG offset, and
     the **PASS/FAIL table** (one row per check, with key numbers).
@@ -306,7 +332,8 @@ Folder `<deck>_fem_checks\`:
 
 ## Status
 
-**Implemented, not yet run in Nastran** (updated 2026-11-04 after the plan review).
+**Implemented; first live runs completed on the user's workstation** (2026-11-04: all four
+Nastran jobs ran and the report was produced; see "Changes from the first live runs").
 Code: `fem_checks/` (Python package). Design document: `fem_checks/fem_checks_design.ipynb`.
 Tests: `python -m pytest fem_checks/tests` (18 pass). They cover:
 - the .f06 parsers against the three real sample .f06s;

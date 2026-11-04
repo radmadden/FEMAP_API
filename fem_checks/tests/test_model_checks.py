@@ -69,7 +69,9 @@ def test_decks(tmp_path):
              "femap_model": "D:\\IRAD\\BD_IRAD_FEMv4.modfem",
              "nastran_statements": ["NASTRAN SYSTEM(442)=-1,SYSTEM(319)=1"]}
     paths = D.write_decks(tmp_path, list(D.DECK_NAMES), ids, 201, ids.mount_spc, 2, 386.0886,
-                          10, 10, True, ["NSM = 50"], trace)
+                          10, 10, True, ["NSM = 50"], trace, D.safe_stem("D:/x/gimbal assy full.dat"))
+    assert paths["freefree"].name == "01_gimbal_assy_full_freefree.dat"
+    assert paths["thermal"].name == "05_gimbal_assy_full_thermal.dat"
     ff = paths["freefree"].read_text()
     assert "GROUNDCHECK(PRINT,SET=(G,N,N+AUTOSPC,F,A),GRID=201,DATAREC=YES)=YES" in ff
     assert "SPC =" not in ff and "NSM = 50" in ff
@@ -82,7 +84,8 @@ def test_decks(tmp_path):
     assert "SPC1,9000001,123456,201" in ud and "SPCD,9000016,201,6,1.0" in ud
     th = paths["thermal"].read_text()
     assert "RIGID = LAGRAN" in th and "TEMPERATURE(INITIAL) = 9000031" in th
-    assert "INCLUDE 'model_bulk_thermal.bdf'" in th
+    assert "INCLUDE 'gimbal_assy_full_bulk_thermal.bdf'" in th
+    assert "INCLUDE 'gimbal_assy_full_bulk.bdf'" in ff
     gr = paths["gravity"].read_text()
     assert "GRAV,9000021,0,386.089,1.0,0.0,0.0" in gr
     for p in paths.values():

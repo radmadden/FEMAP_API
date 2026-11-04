@@ -21,6 +21,10 @@ import numpy as np
 
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]
 INK, INK2, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#fcfcfb"
+# Cell shading for compared values (checks.Table.highlight keys). Light tints of the
+# palette's blue/orange so text stays primary ink and fully readable; the darker blue
+# marks the values a criterion compares with each other.
+HIGHLIGHT = {"pair": "#9ec5f4", "group_a": "#e3eefb", "group_b": "#fde3d6", "fail": "#f6c9c9"}
 STATUS_COLORS = {"PASS": "#0ca30c", "FAIL": "#d03b3b", "ERROR": "#d03b3b",
                  "INFO": "#52514e", "SKIPPED": "#898781"}
 
@@ -178,7 +182,26 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
                             title="FEM validation checks", author="fem_checks")
     width = landscape(letter)[0] - inch
 
-    def table(headers, rows, col_widths=None, status_col=None):
+    mono = ParagraphStyle("mono", parent=body, fontName="Courier", fontSize=6.6, leading=7.6)
+
+    def excerpt(title, lines):
+        """Verbatim .f06 text in a light box, split across pages if long."""
+        from reportlab.platypus import Preformatted
+        head = Paragraph(escape(f"Nastran output: {title} (verbatim from the .f06)"), h3)
+        out = []
+        chunk = 60  # lines per box (60 x 7.6 pt fits the 528 pt frame), so long blocks break between pages
+        for i in range(0, len(lines), chunk):
+            p = Preformatted("\n".join(x[:150] for x in lines[i:i + chunk]), mono)
+            t = Table([[p]], colWidths=[width - 14])
+            t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f4f4f1")),
+                                   ("BOX", (0, 0), (-1, -1), 0.3, colors.HexColor(GRID)),
+                                   ("LEFTPADDING", (0, 0), (-1, -1), 4)]))
+            out.append(t)
+        if out:  # keep the heading on the same page as the first box
+            out[0] = KeepTogether([head, out[0]])
+        return out
+
+    def table(headers, rows, col_widths=None, status_col=None, highlight=()):
         data = [[Paragraph(f"<b>{escape(str(h))}</b>", small) for h in headers]]
         for r in rows:
             data.append([Paragraph(escape(str(c)), small) for c in r])
@@ -187,6 +210,9 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
                  ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f0efec")),
                  ("VALIGN", (0, 0), (-1, -1), "TOP"),
                  ("TOPPADDING", (0, 0), (-1, -1), 1.5), ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5)]
+        for (r, c0, c1, key) in highlight or ():
+            if key in HIGHLIGHT and 0 <= r < len(rows):
+                style.append(("BACKGROUND", (c0, r + 1), (c1, r + 1), colors.HexColor(HIGHLIGHT[key])))
         if status_col is not None:
             for i, r in enumerate(rows, start=1):
                 s = str(r[status_col]).upper()
@@ -228,7 +254,8 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
                 continue
             status_col = len(t.headers) - 1 if str(t.headers[-1]).lower() == "result" else None
             title_p = Paragraph(escape(t.title), h3)
-            tbl = table(t.headers, t.rows, status_col=status_col)
+            tbl = table(t.headers, t.rows, status_col=status_col,
+                        highlight=getattr(t, "highlight", ()))
             # Short tables stay on one page with their title; long ones may split
             # (the header row repeats on each page).
             if len(t.rows) < 25:
@@ -237,6 +264,9 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
                 story += [title_p, tbl]
             if t.note:
                 story.append(Paragraph(escape(t.note), small))
+        for title, lines in getattr(c, "excerpts", []) or []:
+            if lines:
+                story += excerpt(title, lines)
 
     story.append(PageBreak())
     story.append(Paragraph("Appendix: Nastran runs and messages", h2))

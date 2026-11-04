@@ -114,21 +114,23 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
     if s.checks.get("mass_props") and s.targets.any_supplied() and "freefree" not in which:
         which.insert(0, "freefree")  # mass properties come from the free-free WEIGHTCHECK
         say("Free-free run added: the mass-properties check reads its WEIGHTCHECK output.")
-    (out / "model_bulk.bdf").write_text(M.bulk_text(model))
-    say("Wrote model_bulk.bdf (large-field, model PARAMs AUTOSPC/GRDPNT/POST removed)")
+    stem = D.safe_stem(s.deck)
+    bulk_name, thermal_name = D.bulk_filenames(stem)
+    (out / bulk_name).write_text(M.bulk_text(model))
+    say(f"Wrote {bulk_name} (large-field, model PARAMs AUTOSPC/GRDPNT/POST removed)")
     lagran_bad = [eid for eid in model.rigid_elements if eid > M.LAGRAN_MAX_ID]
     thermal_log = []
     if "thermal" in which:
         tmodel = M.read_model(Path(s.deck), out / "work")
         thermal_log = M.make_thermal_uniform(tmodel, s.alpha)
-        (out / "model_bulk_thermal.bdf").write_text(M.bulk_text(tmodel))
+        (out / thermal_name).write_text(M.bulk_text(tmodel))
         for line in thermal_log:
             say("  thermal: " + line)
 
     # STEP 5: decks ---------------------------------------------------------------
     paths = D.write_decks(out, which, ids, mount.grid, gravity_spc, s.real_spc_set, unit["g"],
                           s.n_modes_freefree, s.n_modes_constrained, s.autospc_freefree,
-                          info.carried_case_control, info.trace)
+                          info.carried_case_control, info.trace, stem)
     say("Wrote decks: " + ", ".join(p.name for p in paths.values()))
 
     # STEP 6: run Nastran -------------------------------------------------------
@@ -178,7 +180,13 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
         if f:
             gset = [b for b in f.mass_blocks if b.source == "WEIGHTCHECK" and b.dof_set == "G" and b.IS]
             block = gset[0] if gset else next((b for b in f.mass_blocks if b.IS), None)
-        results.append(C.check_mass_props(block, s.targets, s.units, unit))
+        exc = None
+        if f and block is not None:
+            # the verbatim block for the same DOF set (G) the values came from
+            exc = next((b for b in f.excerpts.get("mass", [])
+                        if any("SET = G" in x and "SET = G" == x.strip()[-7:] for x in b[:3])), None) \
+                or (f.excerpts.get("mass") or [None])[0]
+        results.append(C.check_mass_props(block, s.targets, s.units, unit, exc))
     summary.checks = results
 
     # STEP 9: report ------------------------------------------------------------

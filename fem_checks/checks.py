@@ -29,6 +29,11 @@ class Table:
     headers: list
     rows: list
     note: str = ""
+    # Cells to shade: (row, first_col, last_col, key), rows/cols 0-based over ``rows``.
+    # Keys (colors in report.HIGHLIGHT): "pair" = the values a criterion compares with
+    # each other (same shade = compared together), "group_a"/"group_b" = row groups
+    # (e.g. rigid-body vs elastic modes), "fail" = a value beyond its limit.
+    highlight: list = field(default_factory=list)
 
 
 @dataclass
@@ -40,6 +45,7 @@ class CheckResult:
     details: list = field(default_factory=list)   # bullet lines for the report
     tables: list = field(default_factory=list)    # Table records
     data: dict = field(default_factory=dict)      # numbers for charts + results.json
+    excerpts: list = field(default_factory=list)  # (title, [lines]) verbatim .f06 text
 
 
 def _e(x, fmt="{:.3e}"):
@@ -125,20 +131,93 @@ def check_freefree(f06: Optional[F06], th, autospc: bool) -> CheckResult:
                        + ". MPCs/RBEs are losing or adding mass.")
     else:
         details.append("WEIGHTCHECK: 0% rigid-body mass change in every reduced set.")
-    tables = [
-        Table("Eigenvalues", ["Mode", "Eigenvalue", "Freq (Hz)", "Class"],
-              [[m.mode, _e(m.eigenvalue), _e(abs(m.cycles), "{:.4e}"),
-                "rigid-body" if i < 6 else "elastic"] for i, m in enumerate(modes)]),
-        Table("GROUNDCHECK strain energy (Nastran limit per set)",
-              ["Set", "Matrix", "Limit"] + [f"Dir {k}" for k in range(1, 7)] + ["Result"],
-              [[s.set_name, s.matrix, _e(s.limit)] + [_e(x) for x in s.strain_energy]
-               + ["PASS" if s.all_pass else "FAIL"] for s in gc]),
-    ]
+    tables = [eigen_table(modes, rigid=6), groundcheck_table(gc)]
     data = dict(freq_hz=hz, ratio=ratio, f_rbm_max=f_rbm, f7=f7,
                 groundcheck={s.set_name: dict(limit=s.limit, se=s.strain_energy, passed=s.passed)
                              for s in gc},
                 weightcheck_change={s: c for s, c in wc_changes})
-    return CheckResult(key, title, status, summary, details, tables, data)
+    ex = f06.excerpts
+    excerpts = ([("GROUNDCHECK, all DOF sets", _join(ex.get("groundcheck", [])))] if ex.get("groundcheck") else []) \
+        + ([("Real eigenvalues", _join(ex.get("eigenvalues", [])))] if ex.get("eigenvalues") else []) \
+        + ([("WEIGHTCHECK, all DOF sets", _join(ex.get("mass", [])))] if ex.get("mass") else [])
+    return CheckResult(key, title, status, summary, details, tables, data, excerpts)
+
+
+def _join(blocks: list) -> list:
+    """Several verbatim blocks -> one list of lines with a blank line between blocks."""
+    out = []
+    for b in blocks:
+        if out:
+            out.append("")
+        out += b
+    return out
+
+
+def eigen_table(modes, rigid: int = 0) -> Table:
+    """The REAL EIGENVALUES table with every column Nastran prints. With rigid=6 the
+    rigid-body rows and the first elastic row are shaded as groups, and the two
+    frequencies the free-free criterion divides (max of modes 1-6, mode 7) as a pair."""
+    rows = [[m.mode, m.order, _e(m.eigenvalue), _e(m.radians), _e(abs(m.cycles), "{:.4e}"),
+             _e(m.gen_mass), _e(m.gen_stiffness)]
+            + (["rigid-body" if i < rigid else "elastic"] if rigid else [])
+            for i, m in enumerate(modes)]
+    hl, note = [], ""
+    if rigid and len(modes) > rigid:
+        last = len(rows[0]) - 1
+        hl += [(i, 0, last, "group_a") for i in range(rigid)] + [(rigid, 0, last, "group_b")]
+        i_max = max(range(rigid), key=lambda i: abs(modes[i].cycles))
+        hl += [(i_max, 4, 4, "pair"), (rigid, 4, 4, "pair")]
+        note = ("Shading: blue rows = rigid-body modes 1-6, orange row = first elastic mode; the two "
+                "darker CYCLES cells are the pair the criterion divides (max rigid-body / first elastic).")
+    headers = ["Mode", "Extraction order", "Eigenvalue", "Radians", "Cycles (Hz)",
+               "Generalized mass", "Generalized stiffness"] + (["Class"] if rigid else [])
+    return Table("Real eigenvalues (all columns as printed by Nastran)", headers, rows, note, hl)
+
+
+def groundcheck_table(gc) -> Table:
+    """GROUNDCHECK laid out like the .f06: one column pair (strain energy, PASS/FAIL) per
+    DOF set, directions 1-6 as rows, the set's limit in the last row. FAIL cells shaded."""
+    headers = ["Direction"]
+    for s in gc:
+        headers += [f"{s.set_name}-SET ({s.matrix}) strain energy", "PASS/FAIL"]
+    rows, hl = [], []
+    for d in range(6):
+        row = [d + 1]
+        for k, s in enumerate(gc):
+            se = s.strain_energy[d] if d < len(s.strain_energy) else None
+            ok = s.passed[d] if d < len(s.passed) else False
+            row += [_e(se, "{:.6E}"), "PASS" if ok else "FAIL"]
+            if not ok:
+                hl.append((d, 1 + 2 * k, 2 + 2 * k, "fail"))
+        rows.append(row)
+    rows.append(["Limit"] + sum(([_e(s.limit, "{:.6E}"), ""] for s in gc), []))
+    return Table("GROUNDCHECK: rigid-body strain energy per DOF set (Nastran's PASS/FAIL)",
+                 headers, rows, "Limit = Nastran's default: largest stiffness term / 1e10 "
+                 "(qrg ~18934). Sets in Nastran's order G, N, N+AUTOSPC, F, A.", hl)
+
+
+def resultant_table(title: str, oload, spcf, load_dir: Optional[int], scale_note: str = "") -> Table:
+    """OLOAD and SPCFORCE TOTALS side by side, one row per component, plus their sum.
+    Rows where the applied load is significant are shaded as compared pairs; the load
+    direction row is the darker 'pair' shade."""
+    names = DOF_NAMES
+    o = list(oload) if oload else [None] * 6
+    s = list(spcf) if spcf else [None] * 6
+    big = max([abs(x) for x in o[:3] if x is not None] + [0.0])
+    bigm = max([abs(x) for x in o[3:] if x is not None] + [0.0])
+    rows, hl = [], []
+    for k in range(6):
+        tot = (o[k] + s[k]) if (o[k] is not None and s[k] is not None) else None
+        rows.append([names[k], _e(o[k], "{:.6E}"), _e(s[k], "{:.6E}"), _e(tot, "{:.3E}")])
+        ref = big if k < 3 else bigm
+        if load_dir is not None and k == load_dir:
+            hl.append((k, 1, 2, "pair"))
+        elif o[k] is not None and ref and abs(o[k]) > 1e-6 * ref:
+            hl.append((k, 1, 2, "group_a"))
+    note = ("Same-shade cells are compared with each other: OLOAD and SPCFORCE should be equal "
+            "and opposite, so OLOAD + SPCFORCE should be ~0. Darker = load direction; lighter = other "
+            "components with significant applied load (moments about the basic origin). " + scale_note).strip()
+    return Table(title, ["Component", "OLOAD TOTAL", "SPCFORCE TOTAL", "OLOAD + SPCFORCE"], rows, note, hl)
 
 
 # =========================================================== constrained modes
@@ -168,16 +247,19 @@ def check_constrained(f06: Optional[F06], spc_label: str) -> CheckResult:
     if n_low:
         details.append(f"{n_low} mode(s) below 1 Hz. Confirm they are intended mechanisms "
                        "(e.g. unlocked bearing rotations).")
-    tables = [Table("Frequencies and effective-mass fractions",
-                    ["Mode", "Freq (Hz)"] + dirs, rows)]
+    tables = [eigen_table(modes),
+              Table("Effective-mass fraction per mode", ["Mode", "Freq (Hz)"] + dirs, rows)]
     if cum_rows:
         tables.append(Table("Cumulative effective-mass fraction", ["", *dirs], cum_rows))
+    ex = f06.excerpts
+    excerpts = ([("Real eigenvalues", _join(ex["eigenvalues"]))] if ex.get("eigenvalues") else []) \
+        + ([("Modal effective mass fraction (MEFFMASS)", _join(ex["meff"]))] if ex.get("meff") else [])
     data = dict(freq_hz=[abs(m.cycles) for m in modes],
                 fractions={d: [fr[m.mode].fraction.get(d, 0.0) if m.mode in fr else 0.0
                                for m in modes] for d in dirs},
                 cumulative={d: (f06.meff_fractions[-1].cumsum.get(d) if f06.meff_fractions else None)
                             for d in dirs})
-    return CheckResult(key, title, "INFO", summary, details, tables, data)
+    return CheckResult(key, title, "INFO", summary, details, tables, data, excerpts)
 
 
 # ===================================================== unit enforced displacement
@@ -258,6 +340,26 @@ def check_unit_disp(f06: Optional[F06], fields: dict, force_peaks: dict, mount_x
         Table("Displacement field vs rigid-body motion", ["Subcase", "Translation err", "Rotation err", "Rot. grids", "Result"], field_rows),
         Table("Peak element forces (centroid)", ["Subcase", "Type", "N", "Max force", "Max moment", "Worst elem", "Result"], force_rows),
     ]
+    # Full data: the mount grid's own displacement in every subcase (should be the unit
+    # vector of the enforced DOF; the diagonal is shaded) and every SPCFORCE total.
+    mrows, mhl = [], []
+    for sc in range(1, 7):
+        f = fields.get(sc)
+        if f is None or len(f.nids) == 0:
+            continue
+        i = int(np.argmin(np.linalg.norm(f.xyz - rm, axis=1)))
+        mrows.append([DOF_NAMES[sc - 1], f.nids[i]] + [_e(v, "{:.6E}") for v in list(f.t[i]) + list(f.r[i])])
+        mhl.append((len(mrows) - 1, 1 + sc, 1 + sc, "pair"))
+    if mrows:
+        tables.insert(0, Table("Displacement of the mount grid (basic), one row per subcase",
+                               ["Subcase", "Grid"] + DOF_NAMES, mrows,
+                               "Shaded diagonal = the enforced DOF; it must read 1.0 and every other "
+                               "entry 0.", mhl))
+    srows = [[DOF_NAMES[sc - 1]] + [_e(v, "{:.6E}") for v in f06.spcforce.get(sc, [None] * 6)]
+             for sc in range(1, 7)]
+    tables.insert(1, Table("SPCFORCE resultant TOTALS per subcase (about the basic origin)",
+                           ["Subcase"] + DOF_NAMES, srows,
+                           "All entries should be ~0: the model is only being moved rigidly."))
     if corner_rows:
         tables.append(Table("CQUAD4/plate CORNER values above the limit (INFO, not pass/fail)",
                             ["Subcase", "Type", "Max corner force", "Max corner moment", "Worst elements"], corner_rows))
@@ -265,7 +367,11 @@ def check_unit_disp(f06: Optional[F06], fields: dict, force_peaks: dict, mount_x
         tables.append(Table("EPSILON (UIM 5293)", ["Seq", "Epsilon", "External work", "Result"], eps_rows))
     data = dict(reactions=react_rows, field=field_rows, worst_grids=worst_grids,
                 force_peaks={DOF_NAMES[sc - 1]: v for sc, v in force_peaks.items()})
-    return CheckResult(key, title, status, summary, details, tables, data)
+    ex = f06.excerpts
+    excerpts = [(t, _join(ex[k])) for t, k in (("SPCFORCE resultant", "spcforce"),
+                                               ("OLOAD resultant", "oload"),
+                                               ("EPSILON", "epsilon")) if ex.get(k)]
+    return CheckResult(key, title, status, summary, details, tables, data, excerpts)
 
 
 # ===================================================================== gravity
@@ -312,13 +418,26 @@ def check_gravity(f06: Optional[F06], mass: Optional[float], g: float, size: flo
         "round-off noise that a per-component % test would fail on.",
         f"Mount: {spc_label}.",
     ]
-    tables = [Table("Resultants (in load direction) and errors",
+    tables = [Table("Summary: load direction and errors",
                     ["Dir", f"OLOAD ({units['force']})", f"SPCFORCE ({units['force']})", "mass*g",
-                     "Force err", "Moment err", "Weight err", "Result"], rows)]
+                     "Force err", "Moment err", "Weight err", "Result"], rows,
+                    "Shaded: OLOAD, SPCFORCE and mass*g in the load direction are the three values "
+                    "compared (they must agree in magnitude).",
+                    [(i, 1, 3, "pair") for i in range(len(rows))])]
+    for sc in range(1, 4):
+        tables.append(resultant_table(
+            f"Subcase {sc}: 1g {axes[sc - 1]}: OLOAD vs SPCFORCE, every component",
+            f06.oload.get(sc), f06.spcforce.get(sc), sc - 1,
+            f"mass*g = {_e(mass * g if mass else None, '{:.6E}')} {units['force']}."))
     if eps_rows:
         tables.append(Table("EPSILON (UIM 5293)", ["Seq", "Epsilon", "External work", "Result"], eps_rows))
+    ex = f06.excerpts
+    excerpts = [(t, _join(ex[k])) for t, k in (("OLOAD resultant", "oload"),
+                                               ("SPCFORCE resultant", "spcforce"),
+                                               ("WEIGHTCHECK (G-set, mass units)", "mass"),
+                                               ("EPSILON", "epsilon")) if ex.get(k)]
     return CheckResult(key, title, status, summary, details, tables,
-                       dict(rows=rows, mass=mass, g=g))
+                       dict(rows=rows, mass=mass, g=g), excerpts)
 
 
 # ===================================================================== thermal
@@ -391,13 +510,20 @@ def check_thermal(f06: Optional[F06], field: Optional[R.Field], stresses: list, 
         Table("Grids with the largest displacement error", ["Grid", "Relative error"],
               [[n, _e(v)] for n, v in err["worst_t"]]),
     ]
+    if tot:
+        tables.insert(1, Table("SPCFORCE resultant TOTALS (about the basic origin)", DOF_NAMES,
+                               [[_e(v, "{:.6E}") for v in tot]],
+                               "Expect ~0: a kinematic mount can't resist free expansion."))
     if eps_rows:
         tables.append(Table("EPSILON (UIM 5293)", ["Seq", "Epsilon", "External work", "Result"], eps_rows))
+    ex = f06.excerpts
+    excerpts = [(t, _join(ex[k])) for t, k in (("SPCFORCE resultant", "spcforce"),
+                                               ("EPSILON", "epsilon")) if ex.get(k)]
     dist = np.linalg.norm(field.xyz - rm, axis=1)
     errs = np.linalg.norm(field.t - t_exp, axis=1) / (err["t_scale"] or 1.0)
     data = dict(t_err=err["t_err"], stress_ratio=s_ratio, sig_scale=sig_scale,
                 dist=dist.tolist(), err=errs.tolist(), top=hot_rows)
-    return CheckResult(key, title, status, summary, details, tables, data)
+    return CheckResult(key, title, status, summary, details, tables, data, excerpts)
 
 
 # ============================================================ mass properties
@@ -425,7 +551,8 @@ def target_scale(units_name: str, mass_unit: str) -> float:
     raise ValueError(f"Target mass unit {mass_unit!r} doesn't apply to unit system {units_name!r}")
 
 
-def check_mass_props(block: Optional[MassBlock], targets, units_name: str, units: dict) -> CheckResult:
+def check_mass_props(block: Optional[MassBlock], targets, units_name: str, units: dict,
+                     excerpt: Optional[list] = None) -> CheckResult:
     key, title = "mass_props", "Mass, CG and inertia vs targets"
     if not targets.any_supplied():
         return CheckResult(key, title, "SKIPPED", "No CAD/target values entered.")
@@ -493,8 +620,11 @@ def check_mass_props(block: Optional[MassBlock], targets, units_name: str, units
         "Product tolerances are a % of the largest principal-axis moment, since products are often ~0.",
     ]
     return CheckResult(key, title, status, summary, details,
-                       [Table("FE vs target", ["Quantity", "FE", "Target", "Difference", "Tolerance", "Result"], rows)],
-                       dict(fe=fe, rows=rows))
+                       [Table("FE vs target", ["Quantity", "FE", "Target", "Difference", "Tolerance", "Result"], rows,
+                              "Shaded: each FE value next to the target it is compared with.",
+                              [(i, 1, 2, "pair") for i in range(len(rows))])],
+                       dict(fe=fe, rows=rows),
+                       [("WEIGHTCHECK G-set (source of the FE values)", excerpt)] if excerpt else [])
 
 
 # ============================================================== model summary
