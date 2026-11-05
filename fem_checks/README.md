@@ -18,7 +18,6 @@ all supporting data, and the relevant Nastran output.
 New users: follow **[`docs/installation.md`](docs/installation.md)**. It covers prerequisites,
 getting the code, installing Python, the first run, troubleshooting and updating. In short:
 
-
 1. Install **Python 3.12** from python.org (Windows installer, 64-bit). During installation
    select *Add python.exe to PATH*, *py launcher* and *tcl/tk and IDLE*.
    Python 3.13 or later will not work (pyNastran 1.4.1 requires numpy < 2).
