@@ -167,8 +167,9 @@ def eigen_table(modes, rigid: int = 0) -> Table:
         hl += [(i, 0, last, "group_a") for i in range(rigid)] + [(rigid, 0, last, "group_b")]
         i_max = max(range(rigid), key=lambda i: abs(modes[i].cycles))
         hl += [(i_max, 4, 4, "pair"), (rigid, 4, 4, "pair")]
-        note = ("Shading: blue rows = rigid-body modes 1-6, orange row = first elastic mode; the two "
-                "darker CYCLES cells are the pair the criterion divides (max rigid-body / first elastic).")
+        note = ("Shading: light gray rows = rigid-body modes 1-6; dark green row = first elastic mode; "
+                "the two light green CYCLES cells are the pair the criterion divides "
+                "(max rigid-body / first elastic).")
     headers = ["Mode", "Extraction order", "Eigenvalue", "Radians", "Cycles (Hz)",
                "Generalized mass", "Generalized stiffness"] + (["Class"] if rigid else [])
     return Table("Real eigenvalues (all columns as printed by Nastran)", headers, rows, note, hl)
@@ -198,8 +199,8 @@ def groundcheck_table(gc) -> Table:
 
 def resultant_table(title: str, oload, spcf, load_dir: Optional[int], scale_note: str = "") -> Table:
     """OLOAD and SPCFORCE TOTALS side by side, one row per component, plus their sum.
-    Rows where the applied load is significant are shaded as compared pairs; the load
-    direction row is the darker 'pair' shade."""
+    Rows where the applied load is significant are shaded as compared pairs: the load
+    direction row in the 'pair' shade, other significant rows in the 'group_a' shade."""
     names = DOF_NAMES
     o = list(oload) if oload else [None] * 6
     s = list(spcf) if spcf else [None] * 6
@@ -215,7 +216,7 @@ def resultant_table(title: str, oload, spcf, load_dir: Optional[int], scale_note
         elif o[k] is not None and ref and abs(o[k]) > 1e-6 * ref:
             hl.append((k, 1, 2, "group_a"))
     note = ("Same-shade cells are compared with each other: OLOAD and SPCFORCE should be equal "
-            "and opposite, so OLOAD + SPCFORCE should be ~0. Darker = load direction; lighter = other "
+            "and opposite, so OLOAD + SPCFORCE should be ~0. Light green = load direction; light gray = other "
             "components with significant applied load (moments about the basic origin). " + scale_note).strip()
     return Table(title, ["Component", "OLOAD TOTAL", "SPCFORCE TOTAL", "OLOAD + SPCFORCE"], rows, note, hl)
 

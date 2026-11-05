@@ -135,7 +135,9 @@ Folder `<deck>_fem_checks\`:
     - chart;
     - the verbatim .f06 blocks the verdict was read from.
 
-    Values compared by a criterion share the same shading.
+    Values compared by a criterion share the same shading. Colors follow the corporate
+    palette (black #191919, light green #37d233, white, dark green #00890b, light gray
+    #d5d8cb) in its approved text/background combinations only (`report.COMBO`).
   - Appendix A, Method: for each check, what was run, the pass criteria with the values
     applied in that run, and the reasoning (D1-D8) with references, so the report stands
     on its own;
@@ -243,3 +245,4 @@ Operation:
 | G | Report carries the original model file name in its file name, title, header and every page footer. |
 | H | Thermal deck splits RBE2s that tie rotations to solid-only grids (fixes excessive pivot ratios under RIGID=LAGRAN); the thermal copy is read without cross-referencing so rigid elements can be edited. |
 | I | Self-contained folder: setup and launch scripts, Python environment, VS Code settings and reference PDFs inside `fem_checks`; `run_fem_checks.bat` launcher added. |
+| J | Report colors: corporate palette in its approved text/background combinations; verdict badges; chart series dark/light green. |

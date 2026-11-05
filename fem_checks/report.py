@@ -5,10 +5,16 @@ Layout (landscape letter, so the wide 6-DOF tables fit):
   then     one section per check: verdict, criteria/notes, tables, chart
   appendix all FATAL/WARNING messages, run times, case control carried over
 
-Chart colors are the dataviz reference palette's first categorical slots (blue
-#2a78d6, orange #eb6834, aqua #1baf7a), validated with its validate_palette.js for the
-light surface. Every chart has its numbers in a table beside it (text never relies on
-color alone; the aqua slot is below 3:1 contrast, which the table view covers).
+Colors follow the corporate palette. Primary: black #191919, light green #37d233,
+white #ffffff; secondary: dark green #00890b, light gray #d5d8cb. Only these text /
+background combinations are used:
+  dark green on white      white on dark green      light green on black
+  black on light green     light gray on black      black on light gray
+  white on black           black on white
+Every shaded table cell therefore sets its text color with its background (COMBO).
+Chart series are dark green and light green (validated as distinguishable for color-vision
+deficiency); black is used for reference lines, light gray for gridlines. Light green is
+below 3:1 contrast on white, so every chart's numbers are also in a table beside it.
 """
 from __future__ import annotations
 
@@ -19,14 +25,28 @@ from pathlib import Path
 
 import numpy as np
 
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]
-INK, INK2, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#fcfcfb"
-# Cell shading for compared values (checks.Table.highlight keys). Light tints of the
-# palette's blue/orange so text stays primary ink and fully readable; the darker blue
-# marks the values a criterion compares with each other.
-HIGHLIGHT = {"pair": "#9ec5f4", "group_a": "#e3eefb", "group_b": "#fde3d6", "fail": "#f6c9c9"}
-STATUS_COLORS = {"PASS": "#0ca30c", "FAIL": "#d03b3b", "ERROR": "#d03b3b",
-                 "INFO": "#52514e", "SKIPPED": "#898781"}
+BLACK, LIGHT_GREEN, WHITE = "#191919", "#37d233", "#ffffff"   # primary
+DARK_GREEN, LIGHT_GRAY = "#00890b", "#d5d8cb"                  # secondary
+
+# (background, text) pairs: the only combinations used anywhere in the report.
+COMBO = {
+    "body": (WHITE, BLACK),            # black on white
+    "accent": (WHITE, DARK_GREEN),     # dark green on white (headings, PASS text)
+    "header": (DARK_GREEN, WHITE),     # white on dark green (table header rows)
+    "pair": (LIGHT_GREEN, BLACK),      # black on light green: values compared with each other
+    "group_a": (LIGHT_GRAY, BLACK),    # black on light gray: a row group (e.g. rigid-body modes)
+    "group_b": (DARK_GREEN, WHITE),    # white on dark green: a second row group (first elastic mode)
+    "fail": (BLACK, WHITE),            # white on black: a value beyond its limit
+    "box": (LIGHT_GRAY, BLACK),        # black on light gray: verbatim .f06 blocks
+}
+# Verdict badges: (background, text)
+STATUS_COMBO = {"PASS": (DARK_GREEN, WHITE), "FAIL": (BLACK, WHITE), "ERROR": (BLACK, WHITE),
+                "INFO": (LIGHT_GRAY, BLACK), "SKIPPED": (LIGHT_GRAY, BLACK)}
+
+SERIES = [DARK_GREEN, LIGHT_GREEN, BLACK]   # BLACK only with markers/direct labels
+INK = INK2 = MUTED = BLACK
+GRID, SURFACE = LIGHT_GRAY, WHITE
+HIGHLIGHT = {k: COMBO[k][0] for k in ("pair", "group_a", "group_b", "fail")}  # backward-compatible
 
 
 # ------------------------------------------------------------------ JSON
@@ -82,7 +102,7 @@ def chart_freefree(data: dict, path: Path, ratio_limit: float) -> Path:
     fig, ax, plt = _axes()
     x = np.arange(1, len(hz) + 1)
     floor = max(hz[hz > 0].min() / 10 if (hz > 0).any() else 1e-6, 1e-12)
-    colors = [SERIES[0] if i < 6 else SERIES[1] for i in range(len(hz))]
+    colors = [DARK_GREEN if i < 6 else LIGHT_GREEN for i in range(len(hz))]
     ax.bar(x, np.maximum(hz, floor) - floor, bottom=floor, width=0.6, color=colors,
            edgecolor=SURFACE, linewidth=1.5)
     ax.set_yscale("log")
@@ -107,7 +127,8 @@ def chart_constrained(data: dict, path: Path) -> Path:
     for i, d in enumerate(["T1", "T2", "T3"]):
         frac = np.array(data["fractions"].get(d, [0.0] * n), dtype=float)
         cum = np.cumsum(frac)
-        ax.plot(x, cum, color=SERIES[i], linewidth=2, marker="o", markersize=4, label=d)
+        # Distinct markers too, so the series never rely on color alone (black has no hue).
+        ax.plot(x, cum, color=SERIES[i], linewidth=2, marker="osD"[i], markersize=4, label=d)
         ax.annotate(f"{d} {cum[-1]:.2f}", (x[-1], cum[-1]), xytext=(6, 0),
                     textcoords="offset points", fontsize=7, color=INK2, va="center")
     ax.set_ylim(0, 1.05)
@@ -176,11 +197,31 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
     from xml.sax.saxutils import escape
 
     ss = getSampleStyleSheet()
-    body = ParagraphStyle("body", parent=ss["BodyText"], fontSize=8.5, leading=11)
+    black, white = colors.HexColor(BLACK), colors.HexColor(WHITE)
+    dkgreen, ltgray = colors.HexColor(DARK_GREEN), colors.HexColor(LIGHT_GRAY)
+    body = ParagraphStyle("body", parent=ss["BodyText"], fontSize=8.5, leading=11, textColor=black)
     small = ParagraphStyle("small", parent=body, fontSize=7, leading=8.5)
-    h1 = ParagraphStyle("h1", parent=ss["Heading1"], fontSize=15, spaceAfter=6)
-    h2 = ParagraphStyle("h2", parent=ss["Heading2"], fontSize=12, spaceBefore=4, spaceAfter=4)
-    h3 = ParagraphStyle("h3", parent=ss["Heading3"], fontSize=9.5, spaceBefore=6, spaceAfter=2)
+    h1 = ParagraphStyle("h1", parent=ss["Heading1"], fontSize=15, spaceAfter=6, textColor=dkgreen)
+    h2 = ParagraphStyle("h2", parent=ss["Heading2"], fontSize=12, spaceBefore=4, spaceAfter=4,
+                        textColor=dkgreen)
+    h3 = ParagraphStyle("h3", parent=ss["Heading3"], fontSize=9.5, spaceBefore=6, spaceAfter=2,
+                        textColor=black)
+    _cell_styles: dict = {}
+
+    def cell_style(fg: str, bold: bool = False):
+        """'small' in a given text color (cached); cells are Paragraphs, so the text color
+        must be on the paragraph, not on the table style."""
+        k = (fg, bold)
+        if k not in _cell_styles:
+            _cell_styles[k] = ParagraphStyle(f"cell{len(_cell_styles)}", parent=small,
+                                             textColor=colors.HexColor(fg),
+                                             fontName="Helvetica-Bold" if bold else "Helvetica")
+        return _cell_styles[k]
+
+    def badge(status: str) -> str:
+        """Verdict as a colored badge in paragraph markup, from STATUS_COMBO."""
+        bg, fg = STATUS_COMBO.get(status, COMBO["body"])
+        return f"<font color='{fg}' backColor='{bg}'>&nbsp;{status}&nbsp;</font>"
 
     doc = SimpleDocTemplate(str(path), pagesize=landscape(letter), leftMargin=0.5 * inch,
                             rightMargin=0.5 * inch, topMargin=0.5 * inch, bottomMargin=0.5 * inch,
@@ -194,7 +235,7 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
         """Model file name, run date and page number at the foot of every page."""
         canvas.saveState()
         canvas.setFont("Helvetica", 7)
-        canvas.setFillColor(colors.HexColor(INK2))
+        canvas.setFillColor(black)
         canvas.drawString(0.5 * inch, 0.3 * inch,
                           f"FEM validation checks  |  {model_file or '-'}  |  {stamp}")
         canvas.drawRightString(page_w - 0.5 * inch, 0.3 * inch, f"Page {doc_.page}")
@@ -211,8 +252,8 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
         for i in range(0, len(lines), chunk):
             p = Preformatted("\n".join(x[:150] for x in lines[i:i + chunk]), mono)
             t = Table([[p]], colWidths=[width - 14])
-            t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f4f4f1")),
-                                   ("BOX", (0, 0), (-1, -1), 0.3, colors.HexColor(GRID)),
+            t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(COMBO["box"][0])),
+                                   ("BOX", (0, 0), (-1, -1), 0.3, black),
                                    ("LEFTPADDING", (0, 0), (-1, -1), 4)]))
             out.append(t)
         if out:  # keep the heading on the same page as the first box
@@ -220,24 +261,36 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
         return out
 
     def table(headers, rows, col_widths=None, status_col=None, highlight=()):
-        data = [[Paragraph(f"<b>{escape(str(h))}</b>", small) for h in headers]]
-        for r in rows:
-            data.append([Paragraph(escape(str(c)), small) for c in r])
+        """A data table. Header row white on dark green; body black on white; highlighted
+        cells and the verdict column use the COMBO / STATUS_COMBO pairs, so every cell's
+        text color always matches its background."""
+        nr, nc = len(rows), len(headers)
+        cell = {}  # (row, col) -> (bg, fg, bold), data rows only
+        for (r, c0, c1, key) in highlight or ():
+            if key in COMBO and 0 <= r < nr:
+                bg, fg = COMBO[key]
+                for c in range(max(c0, 0), min(c1, nc - 1) + 1):
+                    cell[(r, c)] = (bg, fg, key in ("pair", "fail"))
+        if status_col is not None:
+            for i, r in enumerate(rows):
+                s_ = str(r[status_col]).upper()
+                key = "PASS" if s_ in ("OK", "PASS") else s_
+                if key in STATUS_COMBO:
+                    bg, fg = STATUS_COMBO[key]
+                    cell[(i, status_col)] = (bg, fg, True)
+        hbg, hfg = COMBO["header"]
+        data = [[Paragraph(f"<b>{escape(str(h))}</b>", cell_style(hfg)) for h in headers]]
+        for i, r in enumerate(rows):
+            data.append([Paragraph(escape(str(v)), cell_style(cell.get((i, j), (None, BLACK, False))[1],
+                                                               cell.get((i, j), (None, None, False))[2]))
+                         for j, v in enumerate(r)])
         t = Table(data, colWidths=col_widths, repeatRows=1)
-        style = [("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor(GRID)),
-                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f0efec")),
+        style = [("GRID", (0, 0), (-1, -1), 0.3, ltgray),
+                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(hbg)),
                  ("VALIGN", (0, 0), (-1, -1), "TOP"),
                  ("TOPPADDING", (0, 0), (-1, -1), 1.5), ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5)]
-        for (r, c0, c1, key) in highlight or ():
-            if key in HIGHLIGHT and 0 <= r < len(rows):
-                style.append(("BACKGROUND", (c0, r + 1), (c1, r + 1), colors.HexColor(HIGHLIGHT[key])))
-        if status_col is not None:
-            for i, r in enumerate(rows, start=1):
-                s = str(r[status_col]).upper()
-                key = "PASS" if s in ("OK", "PASS") else s
-                if key in STATUS_COLORS and key not in ("INFO", "SKIPPED"):
-                    style.append(("TEXTCOLOR", (status_col, i), (status_col, i),
-                                  colors.HexColor(STATUS_COLORS[key])))
+        for (i, j), (bg, _fg, _b) in cell.items():
+            style.append(("BACKGROUND", (j, i + 1), (j, i + 1), colors.HexColor(bg)))
         t.setStyle(TableStyle(style))
         return t
 
@@ -255,8 +308,7 @@ def build_pdf(path: Path, header: dict, check_results: list, charts: dict,
 
     for c in check_results:
         story.append(PageBreak())
-        story.append(Paragraph(f"{escape(c.title)}: "
-                               f"<font color='{STATUS_COLORS.get(c.status, INK)}'>{c.status}</font>", h2))
+        story.append(Paragraph(f"{escape(c.title)}: {badge(c.status)}", h2))
         story.append(Paragraph(escape(c.summary), body))
         for d in c.details:
             story.append(Paragraph("&bull; " + escape(str(d)), body))
