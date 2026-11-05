@@ -15,6 +15,10 @@ all supporting data, and the relevant Nastran output.
 
 ## Setup (once per workstation)
 
+New users: follow **[`docs/installation.md`](docs/installation.md)**. It covers prerequisites,
+getting the code, installing Python, the first run, troubleshooting and updating. In short:
+
+
 1. Install **Python 3.12** from python.org (Windows installer, 64-bit). During installation
    select *Add python.exe to PATH*, *py launcher* and *tcl/tk and IDLE*.
    Python 3.13 or later will not work (pyNastran 1.4.1 requires numpy < 2).
@@ -62,6 +66,7 @@ model verdict.
 
 | Document | Contents |
 |---|---|
+| `docs/installation.md` | Installation, first run, troubleshooting and updating, for a new user |
 | `docs/design.md` | Design description: scope, design decisions with rationale, algorithm, outputs, limitations, verification status and checklist |
 | `docs/background.md` | FEMCI requirements, Simcenter Nastran and pyNastran findings, reference model observations |
 | `docs/fem_checks_design.ipynb` | Step-by-step executable walkthrough on the reference model |

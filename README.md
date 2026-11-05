@@ -7,7 +7,7 @@ with FEMAP and Simcenter Nastran.
 
 | Path | Contents |
 |---|---|
-| `fem_checks/` | **FEM validation checks**: a Python tool that runs the standard FEMCI model checks (free-free modes + GROUNDCHECK, constrained modes, unit enforced displacement, unit gravity, thermal soak, mass properties) on a FEMAP-exported model in Simcenter Nastran and writes one PDF report. Start with [`fem_checks/README.md`](fem_checks/README.md). |
+| `fem_checks/` | **FEM validation checks**: a Python tool that runs the standard FEMCI model checks (free-free modes + GROUNDCHECK, constrained modes, unit enforced displacement, unit gravity, thermal soak, mass properties) on a FEMAP-exported model in Simcenter Nastran and writes one PDF report. Start with [`fem_checks/README.md`](fem_checks/README.md); new users install with [`fem_checks/docs/installation.md`](fem_checks/docs/installation.md). |
 | `macros/` | FEMAP API macros (WinWrap Basic), run in FEMAP via *File > Programming > API Programming*. |
 | `docs/` | Research and design notes for the macros and tools, and presentations. |
 | `tools/` | Stand-alone scripts. |
