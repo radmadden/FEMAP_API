@@ -7,8 +7,8 @@ applied. The design decisions cited as D1-D8 are documented in docs/design.md; t
 reasoning is repeated here so the report stands on its own.
 
 References:
-  femci ~line   NASA GSFC FEMCI "The Book", Validity Checks (reference/FEMCI-The-Book.pdf)
-  qrg ~line     Simcenter Nastran Quick Reference Guide 2025 (reference/QRG.pdf)
+  femci ~line   NASA GSFC FEMCI "The Book", Validity Checks (fem_checks/reference/FEMCI-The-Book.pdf)
+  qrg ~line     Simcenter Nastran Quick Reference Guide 2025 (fem_checks/reference/QRG.pdf)
 """
 from __future__ import annotations
 

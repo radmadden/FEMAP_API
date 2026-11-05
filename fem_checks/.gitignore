@@ -1,0 +1,15 @@
+# Python environment created by setup_fem_checks.bat
+.venv/
+
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Run output and logs (normally written next to the model deck)
+*_fem_checks/
+fem_checks*.log
+
+# Editor settings (written by setup_fem_checks.bat)
+.vscode/

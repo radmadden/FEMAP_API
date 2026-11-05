@@ -7,12 +7,11 @@ with FEMAP and Simcenter Nastran.
 
 | Path | Contents |
 |---|---|
-| `fem_checks/` | **FEM validation checks**: a Python tool that runs the standard FEMCI model checks (free-free modes + GROUNDCHECK, constrained modes, unit enforced displacement, unit gravity, thermal soak, mass properties) on a FEMAP-exported model in Simcenter Nastran and writes one PDF report. Start with [`fem_checks/README.md`](fem_checks/README.md); new users install with [`fem_checks/docs/installation.md`](fem_checks/docs/installation.md). |
+| `fem_checks/` | **FEM validation checks** (self-contained folder): a Python tool that runs the standard FEMCI model checks (free-free modes + GROUNDCHECK, constrained modes, unit enforced displacement, unit gravity, thermal soak, mass properties) on a FEMAP-exported model in Simcenter Nastran and writes one PDF report. Start with [`fem_checks/README.md`](fem_checks/README.md); new users install with [`fem_checks/docs/installation.md`](fem_checks/docs/installation.md). |
 | `macros/` | FEMAP API macros (WinWrap Basic), run in FEMAP via *File > Programming > API Programming*. |
 | `docs/` | Research and design notes for the macros and tools, and presentations. |
 | `tools/` | Stand-alone scripts. |
-| `reference/` | Reference documents: FEMAP API Guide 2025 (`api.pdf`), Simcenter Nastran Quick Reference Guide 2025 (`QRG.pdf`), NASA GSFC FEMCI *The Book* (`FEMCI-The-Book.pdf`). |
-| `setup_fem_checks.bat` | One-time workstation setup for `fem_checks`. |
+| `reference/` | FEMAP API Guide 2025 (`api.pdf`). The Simcenter Nastran Quick Reference Guide and FEMCI *The Book* are in `fem_checks/reference/`. |
 
 ## Macros
 

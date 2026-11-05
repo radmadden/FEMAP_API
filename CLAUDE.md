@@ -8,11 +8,13 @@ Programming), plus Python tooling. The API reference is `reference/api.pdf`
 
 Keep it tidy; nothing loose in the root:
 - `macros/` the `.bas` macros; `docs/` their research and plan docs (and presentations);
-- `reference/` reference PDFs (`api.pdf`, `QRG.pdf`, `FEMCI-The-Book.pdf`);
+- `reference/` the FEMAP API Guide (`api.pdf`);
 - `tools/` stand-alone scripts (`npz_to_3D.py`);
-- `fem_checks/` a self-contained Python package (its own `README.md`, `docs/`,
-  `reference_model/`, `tests/`);
-- root: `README.md`, `CLAUDE.md`, `.gitignore`, `setup_fem_checks.bat` only.
+- `fem_checks/` a self-contained Python package: its own `README.md`, `docs/`,
+  `reference/` (QRG, FEMCI PDFs), `reference_model/`, `tests/`, `setup_fem_checks.bat`,
+  `run_fem_checks.bat`, `.gitignore`, and (after setup) `.venv/` and `.vscode/`. It must stay
+  movable as one folder named `fem_checks`: no paths outside it;
+- root: `README.md`, `CLAUDE.md`, `.gitignore` only.
 
 ## Workflow for every new macro: research → plan → implement
 
@@ -93,9 +95,10 @@ design decisions with rationale, no references to the development conversation. 
 - Pin `pyNastran==1.4.1` in `requirements.txt`. Read Simcenter decks/OP2s with
   `mode='nx'`.
 - Python 3.10-3.12 only (pyNastran 1.4.1 needs numpy < 2; no Windows wheels past 3.12).
-  Environment setup: `setup_fem_checks.bat` -> `fem_checks/setup_env.py`.
+  Environment setup: `fem_checks/setup_fem_checks.bat` -> `fem_checks/setup_env.py`;
+  launcher: `fem_checks/run_fem_checks.bat`.
 - Nastran can't run here, so these tools are verified only against sample files. Say so.
-- Reference PDFs: `reference/FEMCI-The-Book.pdf` (extract to `femci.txt`), `reference/QRG.pdf` (Simcenter
+- Reference PDFs: `fem_checks/reference/FEMCI-The-Book.pdf` (extract to `femci.txt`), `fem_checks/reference/QRG.pdf` (Simcenter
   Nastran Quick Reference Guide, extract to `qrg.txt`), same `pdftotext -layout` method.
 
 ## Git

@@ -1,9 +1,10 @@
 # FEM Validation Checks: Design Description
 
-Tool: `fem_checks/` (Python package). Background and findings: `background.md` (this folder;
-cited below as "background §n"). Executable walkthrough: `fem_checks_design.ipynb`. References:
-`reference/FEMCI-The-Book.pdf` (`femci ~line`) and `reference/QRG.pdf` (`qrg ~line`). Reference
-model and outputs: `fem_checks/reference_model/`.
+Tool: the self-contained `fem_checks` folder (Python package); paths below are relative to it.
+Background and findings: `docs/background.md` (cited as "background §n"). Executable
+walkthrough: `docs/fem_checks_design.ipynb`. References: `reference/FEMCI-The-Book.pdf`
+(`femci ~line`) and `reference/QRG.pdf` (`qrg ~line`). Reference model and outputs:
+`reference_model/`.
 
 ## 1. Scope
 
@@ -157,7 +158,8 @@ Folder `<deck>_fem_checks\`:
 | `checks.py` | PASS/FAIL evaluation and report tables |
 | `report.py` | PDF (reportlab), charts (matplotlib), `results.json` |
 | `method.py` | Method appendix text, generated from the run settings |
-| `setup_env.py` + `setup_fem_checks.bat` | Workstation setup: Python 3.12 virtual environment, packages, Jupyter kernel, VS Code configuration, Nastran discovery, self-test |
+| `setup_fem_checks.bat` + `setup_env.py` | Workstation setup (in the folder's own `.venv`): Python 3.12 virtual environment, packages, Jupyter kernel, VS Code configuration, Nastran discovery, self-test |
+| `run_fem_checks.bat` | Launcher: GUI on double-click; a settings file as argument repeats a run |
 | `tests/` | Parser tests on the reference .f06 files; model, deck and check tests on a generated model and the reference deck |
 
 ## 7. Assumptions and limitations
@@ -196,23 +198,25 @@ gravity checks and produced the report. The thermal check has not yet been run l
 
 ## 9. Setup and operation
 
-Setup (once per workstation):
+The tool is the self-contained `fem_checks` folder; it can be copied or moved as a unit, must
+keep the name `fem_checks` (Python imports it by that name, from the folder above), and holds
+its own Python environment in `.venv` (re-created by the setup after a move).
+
+Setup (once per workstation; full guide: `docs/installation.md`):
 1. Install Python 3.12 (python.org; select *py launcher* and *tcl/tk and IDLE*).
-2. Run `setup_fem_checks.bat` in the repository root. It creates `.venv`, installs
-   `fem_checks/requirements.txt` and `requirements-dev.txt`, registers the Jupyter kernel
-   "fem_checks (.venv)", merges VS Code settings and launch configurations, locates
-   `nastran.exe`, and runs the tests.
+2. Run `setup_fem_checks.bat`. It creates `.venv`, installs `requirements.txt` and
+   `requirements-dev.txt`, registers the Jupyter kernel "fem_checks (.venv)", merges VS Code
+   settings and launch configurations into `.vscode` (for opening this folder in VS Code),
+   locates `nastran.exe`, and runs the tests.
 
 Operation:
-```
-.venv\Scripts\python -m fem_checks                                 # GUI
-.venv\Scripts\python -m fem_checks <out>\fem_checks.json           # repeat a run
-.venv\Scripts\python -m fem_checks <out>\fem_checks.json --no-run  # re-evaluate outputs
-```
+- `run_fem_checks.bat`: GUI.
+- `run_fem_checks.bat <out>\fem_checks.json`: repeat a run without the GUI.
+- `run_fem_checks.bat <out>\fem_checks.json --no-run`: re-evaluate existing outputs.
 
 ## 10. Verification checklist (per new model or installation)
 
-1. Setup ends with "Setup complete."; the GUI opens.
+1. Setup ends with "Setup complete."; `run_fem_checks.bat` opens the GUI.
 2. The GPWG/WEIGHTCHECK mass, CG and I(S) in `01_<model>_freefree.f06` match an independent
    free-free run of the model to every printed digit (confirms the bulk rewrite).
 3. The mount grid is sensible, and the report's CG offset agrees with the GPWG CG.
@@ -238,3 +242,4 @@ Operation:
 | F | Displacements rotated from each grid's output system to basic by grid ID (any R/C/S system); the mount grid may have any output system; every check's verdict and reason, and Nastran FATAL messages, written to the run log. |
 | G | Report carries the original model file name in its file name, title, header and every page footer. |
 | H | Thermal deck splits RBE2s that tie rotations to solid-only grids (fixes excessive pivot ratios under RIGID=LAGRAN); the thermal copy is read without cross-referencing so rigid elements can be edited. |
+| I | Self-contained folder: setup and launch scripts, Python environment, VS Code settings and reference PDFs inside `fem_checks`; `run_fem_checks.bat` launcher added. |

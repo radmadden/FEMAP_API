@@ -1,9 +1,13 @@
 """One-stop environment setup for fem_checks on a Windows workstation.
 
-Run it through ``setup_fem_checks.bat`` in the repo root (double-click). The .bat finds
-Python 3.12, creates ``.venv`` in the repo and then runs this module inside it:
+Run it through ``setup_fem_checks.bat`` in this folder (double-click). The .bat finds
+Python 3.12, creates ``.venv`` inside the fem_checks folder, and runs this module from the
+folder above (so ``fem_checks`` imports as a package):
 
-    .venv\\Scripts\\python -m fem_checks.setup_env [--no-dev] [--no-vscode] [--no-tests]
+    fem_checks\\.venv\\Scripts\\python -m fem_checks.setup_env [--no-dev] [--no-vscode] [--no-tests]
+
+The whole tool lives in the fem_checks folder: code, docs, reference PDFs, reference model,
+the Python environment and the VS Code settings. The folder must keep the name fem_checks.
 
 What it does, in order:
   1. checks the Python version. pyNastran 1.4.1 needs numpy < 2, and numpy 1.26 (the last
@@ -12,7 +16,8 @@ What it does, in order:
   2. pip-installs fem_checks/requirements.txt (+ requirements-dev.txt unless --no-dev:
      pytest, Jupyter, ipykernel);
   3. registers a Jupyter kernel "fem_checks (.venv)" so the design notebook runs in VS Code;
-  4. writes/merges .vscode/settings.json, extensions.json and launch.json (existing keys
+  4. writes/merges fem_checks/.vscode/settings.json, extensions.json and launch.json, for
+     opening the fem_checks folder itself in VS Code (existing keys
      are kept; only missing entries are added) and installs the Python + Jupyter
      extensions if the ``code`` command is on PATH;
   5. looks for nastran.exe in the usual Siemens install folders and pre-fills the GUI's
@@ -75,7 +80,7 @@ def pip_install(files: list[Path]) -> bool:
     r = subprocess.run(args)
     if r.returncode != 0:
         say("\n  pip failed. On a company network this is usually the proxy or a blocked "
-            "pypi.org. Try:\n    .venv\\Scripts\\python -m pip install --proxy "
+            "pypi.org. Try:\n    fem_checks\\.venv\\Scripts\\python -m pip install --proxy "
             "http://<proxy:port> -r fem_checks\\requirements.txt\nor ask IT to allow "
             "pypi.org and files.pythonhosted.org.")
         return False
@@ -118,16 +123,19 @@ def _merge(path: Path, wanted: dict) -> dict:
     return data
 
 
-def write_vscode(repo: Path = REPO) -> None:
-    vs = repo / ".vscode"
+def write_vscode(folder: Path = PKG) -> None:
+    """VS Code settings for opening the fem_checks folder itself as the workspace.
+    ${workspaceFolder} is then the fem_checks folder: the interpreter is its .venv, and
+    the run configurations start one level up so ``-m fem_checks`` imports the package."""
+    vs = folder / ".vscode"
     interp = "${workspaceFolder}/.venv/Scripts/python.exe" if os.name == "nt" \
         else "${workspaceFolder}/.venv/bin/python"
     _merge(vs / "settings.json", {
         "python.defaultInterpreterPath": interp,
         "python.testing.pytestEnabled": True,
         "python.testing.unittestEnabled": False,
-        "python.testing.pytestArgs": ["fem_checks/tests"],
-        "jupyter.notebookFileRoot": "${workspaceFolder}/fem_checks/docs",
+        "python.testing.pytestArgs": ["tests"],
+        "jupyter.notebookFileRoot": "${workspaceFolder}/docs",
         # The Problems tab otherwise fills with Pylance type warnings about pyNastran.
         # Real errors still show.
         "python.analysis.typeCheckingMode": "off",
@@ -136,12 +144,12 @@ def write_vscode(repo: Path = REPO) -> None:
     _merge(vs / "extensions.json", {"recommendations": EXTENSIONS})
     _merge(vs / "launch.json", {"version": "0.2.0", "configurations": [
         {"name": "FEM checks: GUI", "type": "debugpy", "request": "launch",
-         "module": "fem_checks", "cwd": "${workspaceFolder}", "justMyCode": True},
+         "module": "fem_checks", "cwd": "${workspaceFolder}/..", "justMyCode": True},
         {"name": "FEM checks: run a settings file", "type": "debugpy", "request": "launch",
-         "module": "fem_checks", "args": ["${input:settingsFile}"], "cwd": "${workspaceFolder}"},
+         "module": "fem_checks", "args": ["${input:settingsFile}"], "cwd": "${workspaceFolder}/.."},
         {"name": "FEM checks: re-evaluate (no Nastran)", "type": "debugpy", "request": "launch",
          "module": "fem_checks", "args": ["${input:settingsFile}", "--no-run"],
-         "cwd": "${workspaceFolder}"},
+         "cwd": "${workspaceFolder}/.."},
     ]})
     # The ${input:...} prompt used above.
     lp = vs / "launch.json"
@@ -157,7 +165,7 @@ def write_vscode(repo: Path = REPO) -> None:
 def install_extensions() -> None:
     code = shutil.which("code") or shutil.which("code.cmd")
     if not code:
-        say("  'code' is not on PATH: open the repo folder in VS Code and accept the "
+        say("  'code' is not on PATH: open the fem_checks folder in VS Code and accept the "
             "'recommended extensions' prompt (Python, Jupyter).")
         return
     for ext in EXTENSIONS:
@@ -270,8 +278,8 @@ def main(argv=None) -> int:
         for p in problems:
             say("  - " + p)
         return 1
-    say("\nReady. Start the GUI with:  .venv\\Scripts\\python -m fem_checks"
-        "\nor open the folder in VS Code and use Run > 'FEM checks: GUI'.")
+    say("\nReady. Start the tool by double-clicking run_fem_checks.bat in the fem_checks folder,"
+        "\nor open the fem_checks folder in VS Code and use Run > 'FEM checks: GUI'.")
     return 0
 
 

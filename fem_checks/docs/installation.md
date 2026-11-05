@@ -3,6 +3,10 @@
 Step-by-step setup of the FEM validation checks on a new Windows workstation, and a first
 run. Allow about 30 minutes, most of it downloads.
 
+The tool is one self-contained folder, `fem_checks`. It holds the code, documentation,
+reference PDFs, reference model, setup and launch scripts, and, after setup, its own
+Python environment. Paths below are relative to that folder.
+
 ## 1. Prerequisites
 
 | Item | Notes |
@@ -10,23 +14,23 @@ run. Allow about 30 minutes, most of it downloads.
 | Windows 10/11 workstation | |
 | FEMAP | Only to export the model as a Nastran deck. |
 | Simcenter Nastran, installed and licensed | The FEMAP-bundled solver works (`C:\Program Files\Siemens\Femap <version>\NASTRAN\bin\nastran.exe`), as does a Simcenter 3D install (`...\Simcenter3D_<version>\NXNASTRAN\bin\nastran.exe`). Verified with Simcenter Nastran 2306 and 2512. |
-| Access to the repository | GitHub repository `radmadden/FEMAP_API`. If it is private, the owner adds you under *Settings > Collaborators*. Alternatively the owner can send a ZIP of the repository. |
+| The `fem_checks` folder | From the team's git repository, or a copy or ZIP from the tool owner (§2). |
 | Internet access to `pypi.org` and `files.pythonhosted.org` | For the one-time package download. On a company network these may need to be allowed by IT (see §7). |
-| About 1.5 GB of disk | Python, packages and the repository's reference files. |
+| About 1.5 GB of disk | Python, packages and the folder's reference files. |
 
-## 2. Get the code
+## 2. Get the folder
 
-Place the repository in a local folder that is **not** synchronized by OneDrive or a
-similar service (the Python environment holds thousands of small files), for example
-`D:\FEMAP_API`.
+Place it in a local folder that is **not** synchronized by OneDrive or a similar service
+(the Python environment holds thousands of small files), for example `D:\Tools\fem_checks`.
+
+**The folder must be named `fem_checks`.** Python finds the tool by that name, so a folder
+renamed to e.g. `fem_checks-main` (as GitHub's ZIP download names it) must be renamed back.
 
 Choose one:
-
-- **GitHub Desktop or Git** (recommended: easy updates). Clone
-  `https://github.com/radmadden/FEMAP_API` into the folder. With VS Code: *Ctrl+Shift+P >
-  Git: Clone*.
-- **ZIP download.** On the GitHub page, *Code > Download ZIP*, then extract it. Updating
-  later means downloading and extracting again.
+- **Git** (recommended: easy updates). Clone the repository with GitHub Desktop, VS Code
+  (*Ctrl+Shift+P > Git: Clone*) or `git clone`. If the repository holds other folders too,
+  use the `fem_checks` folder inside it.
+- **Copy or ZIP** from the tool owner. Extract it and check the folder name.
 
 ## 3. Install Python 3.12
 
@@ -47,13 +51,14 @@ Check in a new Command Prompt: `py -3.12 --version` prints `Python 3.12.x`.
 
 ## 4. Run the setup
 
-Double-click **`setup_fem_checks.bat`** in the repository folder. It:
+In the `fem_checks` folder, double-click **`setup_fem_checks.bat`**. It:
 
-1. finds Python 3.12 and creates a private environment in `.venv` (nothing is installed
-   into the system Python);
+1. finds Python 3.12 and creates a private environment in `fem_checks\.venv` (nothing is
+   installed into the system Python);
 2. installs pyNastran, reportlab, Jupyter and pytest;
 3. registers the Jupyter kernel "fem_checks (.venv)";
-4. writes VS Code settings and run configurations (keeping any existing ones);
+4. writes VS Code settings and run configurations into `fem_checks\.vscode` (keeping any
+   existing ones);
 5. finds `nastran.exe` and pre-fills it in the GUI;
 6. runs the self-tests.
 
@@ -61,14 +66,13 @@ It ends with **"Setup complete."** It is safe to run again at any time.
 
 ## 5. First run
 
-1. **Export the model from FEMAP.** *File > Export > Analysis Model*, or *Model > Analysis
-   > Export* on any analysis set. The tool keeps only the bulk data; it replaces the
-   executive and case control with its own. Note the ID of the model's real constraint
-   (SPC) set if you want the constrained-modes check.
-2. **Start the GUI.** Either:
-   - in VS Code: open the repository folder, *Run > Start Debugging*, choose **FEM checks:
-     GUI**; or
-   - in a Command Prompt in the repository folder: `.venv\Scripts\python -m fem_checks`.
+1. **Export the model from FEMAP.** *File > Export > Analysis Model*, or export from the
+   Analysis Set Manager. Any analysis set will do: the tool keeps only the bulk data and
+   replaces the executive and case control with its own. Note the ID of the model's real
+   constraint (SPC) set if you want the constrained-modes check.
+2. **Start the tool:** double-click **`run_fem_checks.bat`** in the `fem_checks` folder.
+   Or, in VS Code, open the `fem_checks` folder (*File > Open Folder*) and use *Run > Start
+   Debugging > FEM checks: GUI*.
 3. **Fill in the Run tab:**
    - **Model deck:** the exported `.dat`;
    - **Nastran executable:** `nastran.exe`, pre-filled by the setup. Use `nastran.exe`, not
@@ -87,8 +91,10 @@ Results are in the output folder:
 - `fem_checks.log`, the run log, which ends with one line per check;
 - the check decks and their Nastran output.
 
-The GUI remembers the last settings. A run can be repeated without the GUI with
-`.venv\Scripts\python -m fem_checks <output folder>\fem_checks.json`.
+The GUI remembers the last settings. A run can be repeated without the GUI by dragging its
+`fem_checks.json` onto `run_fem_checks.bat`, or from a Command Prompt:
+`run_fem_checks.bat "<output folder>\fem_checks.json"`. Add `--no-run` to rebuild the
+report from existing outputs without running Nastran.
 
 ## 6. Reading the results
 
@@ -102,21 +108,28 @@ see Appendix B, the log, and that run's `.f06` (search for `FATAL`).
 | Symptom | Cause and fix |
 |---|---|
 | Setup: "No Python 3.10 - 3.12 found" | Python 3.12 not installed, or installed without *Add to PATH* / *py launcher*. Re-run the installer (*Modify*), or close and reopen the folder window and try again. |
-| Setup: pip errors mentioning proxy, SSL or connection | The company network blocks `pypi.org` / `files.pythonhosted.org`. Ask IT to allow them, or run `.venv\Scripts\python -m pip install --proxy http://<proxy:port> -r fem_checks\requirements.txt` and re-run the setup. |
+| Setup or launch: "No module named fem_checks" | The folder is not named `fem_checks` (e.g. `fem_checks-main` from a ZIP). Rename it to `fem_checks`. |
+| Setup: pip errors mentioning proxy, SSL or connection | The company network blocks `pypi.org` / `files.pythonhosted.org`. Ask IT to allow them, or from the folder *above* `fem_checks` run `fem_checks\.venv\Scripts\python -m pip install --proxy http://<proxy:port> -r fem_checks\requirements.txt`, then re-run the setup. |
 | Setup: "tkinter missing" | Python was installed without *tcl/tk and IDLE*. Re-run the installer, choose *Modify*, and tick it. |
 | Setup: test failures | Send the console output to the tool owner. |
+| `run_fem_checks.bat`: "The Python environment is missing" | Run `setup_fem_checks.bat` first. If the folder was moved, delete `fem_checks\.venv` and run the setup again (a Python environment cannot be moved). |
 | A check shows ERROR with "no .f06 written" in under a second | `nastranw.exe` was selected; select `nastran.exe` in the same folder. |
 | "Permission denied" on the report | The previous report is open in a PDF viewer. The tool writes a time-stamped copy instead; close the viewer to keep the usual name. |
 | A check shows ERROR after a normal-length run | Nastran stopped with a FATAL message. The log lists it under the run's deck name; the `.f06` has the details. |
-| VS Code *Problems* tab full of warnings | Code-checker warnings, not run errors. Select the `.venv` interpreter (*Ctrl+Shift+P > Python: Select Interpreter*). |
+| VS Code *Problems* tab full of warnings | Code-checker warnings, not run errors. Open the `fem_checks` folder itself in VS Code, and select its `.venv` interpreter (*Ctrl+Shift+P > Python: Select Interpreter*). |
 
 When asking for help, send the **`Results:` block at the end of `fem_checks.log`** and, for
 an ERROR, the FATAL message from the run's `.f06`.
 
-## 8. Updating to a new version
+## 8. Updating or moving
 
-- **Git / GitHub Desktop / VS Code:** *Sync* (or `git pull`) on the `main` branch.
-- **ZIP:** download and extract the new ZIP over the old folder, keeping `.venv`.
-
-Then run `setup_fem_checks.bat` once more. It installs anything new and re-runs the
-self-tests; an unchanged environment is left as it is.
+- **Update with git:** *Sync* (or `git pull`). Then run `setup_fem_checks.bat` once more; it
+  installs anything new and re-runs the self-tests.
+- **Update from a copy or ZIP:** replace the folder's contents with the new version, keeping
+  `.venv`, then run the setup.
+- **Move the folder:** move the whole `fem_checks` folder, delete `fem_checks\.venv`, and run
+  the setup again. A Python environment has its location built in and does not survive a
+  move.
+- **Upgrading from the earlier layout** (setup script and `.venv` one level above
+  `fem_checks`): delete the old `.venv` and `.vscode` folders next to `fem_checks`, run
+  `fem_checks\setup_fem_checks.bat`, and open the `fem_checks` folder itself in VS Code.

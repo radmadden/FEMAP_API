@@ -205,7 +205,7 @@ def test_setup_vscode_merge_keeps_existing_values(tmp_path):
     write_vscode(tmp_path)   # idempotent
     st = json.loads((vs / "settings.json").read_text())
     assert st["python.defaultInterpreterPath"] == "C:/mine/python.exe" and st["editor.fontSize"] == 15
-    assert st["python.testing.pytestArgs"] == ["fem_checks/tests"]
+    assert st["python.testing.pytestArgs"] == ["tests"]
     la = json.loads((vs / "launch.json").read_text())
     names = [c["name"] for c in la["configurations"]]
     assert names.count("FEM checks: GUI") == 1 and la["configurations"][0]["module"] == "custom"

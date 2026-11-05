@@ -1,8 +1,9 @@
 # FEM Validation Checks: Background and Findings
 
 Companion documents (this folder): `design.md` (design description) and
-`fem_checks_design.ipynb` (executable walkthrough). Reference PDFs are in `reference/` at the
-repository root; the reference model and its outputs are in `fem_checks/reference_model/`.
+`fem_checks_design.ipynb` (executable walkthrough). Paths are relative to the `fem_checks`
+folder: reference PDFs are in `reference/`, the reference model and its outputs in
+`reference_model/`.
 
 ## 1. Purpose
 
@@ -31,7 +32,7 @@ The tool is written in Python. FEMAP is used only to export the model deck.
 | NASA GSFC FEMCI, *The Book*, section "Validity Checks" (`reference/FEMCI-The-Book.pdf`) | Check definitions and pass criteria | `femci ~line` = line in `pdftotext -layout FEMCI-The-Book.pdf femci.txt` |
 | Simcenter Nastran Quick Reference Guide, 2025 (`reference/QRG.pdf`) | Case control and bulk data syntax, defaults | `qrg ~line` = line in `pdftotext -layout QRG.pdf qrg.txt` |
 | pyNastran 1.4.1 source | Deck and OP2 reading | file:line in the installed package |
-| Reference model `BD IRAD V2` (`fem_checks/reference_model/1G_unit_load_check-0000.dat`) and its outputs (`freefree_check-0000.f06`, `ud_check-0000.f06/.op2`, `1g_unit_load_check-0000.f06/.op2`) | Parser development and verification | n/a |
+| Reference model `BD IRAD V2` (`reference_model/1G_unit_load_check-0000.dat`) and its outputs (`freefree_check-0000.f06`, `ud_check-0000.f06/.op2`, `1g_unit_load_check-0000.f06/.op2`) | Parser development and verification | n/a |
 
 The reference model has 24,851 grids; CHEXA, CPENTA, CQUAD4, CTRIA3, CBEAM, CBUSH, RBE2,
 RBE3 and CONM2 elements; mass 1.900295 lbf·s²/in; and units in-lbf-s.
