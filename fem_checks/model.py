@@ -93,13 +93,15 @@ def _strip_checksum(deck: Path, work_dir: Path) -> Path:
     return out
 
 
-def read_model(deck: Path, work_dir: Path) -> BDF:
-    """Read the FEMAP deck. xref=True so elements know their nodes/properties.
+def read_model(deck: Path, work_dir: Path, xref: bool = True) -> BDF:
+    """Read the FEMAP deck. xref=True so elements know their nodes/properties (needed for
+    geometry, quality and mass properties). The thermal copy is read with xref=False so
+    its rigid elements can be edited as plain ID lists before it is written.
     Raises with pyNastran's own message if a card can't be read."""
     readable = _strip_checksum(Path(deck), Path(work_dir))
     model = BDF(debug=False, mode="nx")
     # INCLUDEs in the FEMAP deck are resolved relative to the original deck folder.
-    model.read_bdf(str(readable), xref=True, punch=False, validate=True)
+    model.read_bdf(str(readable), xref=xref, punch=False, validate=True)
     return model
 
 
@@ -432,6 +434,61 @@ def bulk_text(model: BDF) -> str:
         raise RuntimeError(f"bulk_text: executive/case control leaked into the bulk data: {bad[:3]}")
     lines = [x for x in lines if not _ENDDATA_RE.match(x)]
     return "\n".join(lines) + "\n"
+
+
+def split_rbe2_rotations_on_solid_grids(model: BDF) -> list[str]:
+    """For the RIGID=LAGRAN thermal deck: an RBE2 whose CM includes rotations (4, 5, 6)
+    and whose dependent grids include grids with no rotational stiffness (grids on solid
+    elements only) is split so those grids are tied in translation only.
+
+    Why: under the default RIGID=LINEAR, dependent DOF are eliminated before the solve
+    and such rotations never matter. Under RIGID=LAGRAN they stay in the stiffness
+    matrix with zero stiffness while AUTOSPC also constrains them; the conflicting
+    constraints give near-singular pivots and a FATAL "excessive pivot ratios" (seen on
+    the reference model: RBE2 110225 ties 123456 to 256 solid-only grids). The split is
+    mechanically neutral: a solid-only grid's rotation is not connected to anything
+    stiff, which is exactly why AUTOSPC removes it.
+
+    The original element keeps the grids that have rotational stiffness; a new RBE2
+    (next free element ID, same independent grid, translational part of CM) takes the
+    solid-only grids. Call on an xref=False copy. Returns a log of the changes."""
+    rot = _rotation_grids(model)
+    used = set(model.elements) | set(model.rigid_elements) | set(model.masses)
+    next_id = max(used, default=0) + 1
+    log = []
+    for eid in sorted(list(model.rigid_elements)):
+        r = model.rigid_elements[eid]
+        if r.type != "RBE2":
+            continue
+        cm = str(r.cm)
+        if not any(c in cm for c in "456"):
+            continue
+        deps = list(r.Gmi)
+        solid = [n for n in deps if n not in rot]
+        if not solid:
+            continue
+        keep = [n for n in deps if n in rot]
+        cm_t = "".join(c for c in cm if c in "123")
+        if keep:
+            r.Gmi = keep
+        if cm_t:
+            if keep:
+                model.add_rbe2(next_id, r.gn, cm_t, solid, alpha=r.alpha or 0.0,
+                               comment=f"fem_checks: split from RBE2 {eid} (thermal deck only)")
+                log.append(f"RBE2 {eid}: {len(solid)} solid-only dependent grids moved to new "
+                           f"RBE2 {next_id} with CM {cm_t} (was {cm})")
+                next_id += 1
+            else:
+                r.cm = cm_t
+                log.append(f"RBE2 {eid}: all {len(solid)} dependent grids are solid-only; CM {cm} -> {cm_t}")
+        else:
+            if keep:
+                log.append(f"RBE2 {eid}: {len(solid)} solid-only dependent grids dropped (CM {cm} "
+                           "has no translations)")
+            else:
+                del model.rigid_elements[eid]
+                log.append(f"RBE2 {eid}: removed (CM {cm} rotations only, on solid-only grids)")
+    return log
 
 
 def make_thermal_uniform(model: BDF, alpha: float) -> list[str]:

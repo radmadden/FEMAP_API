@@ -197,6 +197,15 @@ own cards (SPC1, SPCD, GRAV, TEMPD, EIGRL, PARAMs) using a reserved ID range che
 the model, and includes the shared bulk data. Case-control commands that change the model
 itself (NSM, MPC, DMIG selection) are carried into every check deck.
 
+**Rigid elements under RIGID=LAGRAN.** Under the default `RIGID=LINEAR`, dependent DOF of
+rigid elements are eliminated before the solve. Under `LAGRAN` they remain in the solution
+with Lagrange multipliers. An RBE2 that ties rotations to grids on solid elements only then
+leaves zero-stiffness rotational DOF that AUTOSPC also constrains, and the conflicting
+constraints produce near-singular pivots. On the reference model, RBE2 110225 (CM 123456,
+256 of 352 dependent grids on solids only) stopped the thermal run with excessive pivot
+ratios. Tying those grids in translation only is mechanically neutral and removes the
+conflict; the thermal deck applies it.
+
 **Thermal soak criteria.** With a uniform α, a uniform ΔT and a kinematic mount, the exact
 solution is stress-free for any element mix, with u = α·ΔT·(r − r_m). Any stress therefore
 indicates a modeling defect, and the criteria can be relative and unit-free:

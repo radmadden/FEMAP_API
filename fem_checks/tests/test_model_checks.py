@@ -324,3 +324,23 @@ def test_mount_with_cylindrical_cd(deck, tmp_path):
     assert t[1] == pytest.approx([0, 1, 0])
     t, r = R.rigid_body_field(xyz, np.array(m.xyz), 6, m.axes)   # rotation about local z
     assert r[0] == pytest.approx([0, 0, 1]) and t[1] == pytest.approx([-1, 0, 0])
+
+
+def test_thermal_split_of_rbe2_rotations_on_solid_grids(deck, tmp_path):
+    """RIGID=LAGRAN fix: an RBE2 tying rotations to solid-only grids is split so those
+    grids get translations only; everything else is untouched and the deck reads back."""
+    t = M.read_model(deck, tmp_path / "w", xref=False)
+    t.add_rbe2(800, 201, "123456", [7, 106])      # 7 is on shells, 106 only on the CHEXA
+    t.add_rbe2(801, 201, "123456", [105, 107])    # all solid-only -> CM becomes 123
+    log = M.split_rbe2_rotations_on_solid_grids(t)
+    assert t.rigid_elements[800].Gmi == [7] and str(t.rigid_elements[800].cm) == "123456"
+    new = [r for e, r in t.rigid_elements.items() if e not in (400, 700, 800, 801)]
+    assert len(new) == 1 and new[0].Gmi == [106] and str(new[0].cm) == "123" and new[0].gn == 201
+    assert str(t.rigid_elements[801].cm) == "123"
+    assert str(t.rigid_elements[400].cm) == "123456" and len(log) == 2   # shell-only RBE2 untouched
+    (tmp_path / "b.bdf").write_text(M.bulk_text(t))
+    (tmp_path / "rt.dat").write_text(f"SOL 101\nCEND\nBEGIN BULK\nINCLUDE '{tmp_path / 'b.bdf'}'\nENDDATA\n")
+    from pyNastran.bdf.bdf import BDF
+    back = BDF(debug=False, mode="nx")
+    back.read_bdf(str(tmp_path / "rt.dat"), xref=False)
+    assert back.rigid_elements[new[0].eid].Gmi == [106]

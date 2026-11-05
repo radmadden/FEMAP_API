@@ -140,7 +140,11 @@ def method_sections(s, unit: dict, mount_grid: int, mount_auto: bool, gravity_la
             f"material is given the same CTE (alpha = {alpha:g}) with TREF = 0 (femci ~2319); "
             "temperature-dependent material entries (MATT) are removed. Every rigid element is "
             "given the same ALPHA, and the run uses RIGID = LAGRAN, under which rigid elements "
-            "expand (qrg ~26012, D4). TEMPERATURE(INITIAL) = 0 and TEMPERATURE(LOAD) = 1, so "
+            "expand (qrg ~26012, D4). Under LAGRAN, an RBE2 that ties rotations to grids on solid "
+            "elements only is split so those grids are tied in translation only: their rotations "
+            "carry no stiffness, so the split changes nothing mechanically, and it avoids the "
+            "conflict with AUTOSPC that otherwise stops the run with excessive pivot ratios. "
+            "TEMPERATURE(INITIAL) = 0 and TEMPERATURE(LOAD) = 1, so "
             "dT = 1 and strain = alpha (T_load - T_init) (qrg ~29940).",
             "Purpose: with one CTE everywhere and a mount that cannot resist expansion, the exact "
             "solution is stress-free for any mix of elements, and every grid moves "

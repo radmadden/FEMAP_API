@@ -122,8 +122,9 @@ def _run(s: Settings, out: Path, summary: RunSummary, say, run_solver: bool) -> 
     lagran_bad = [eid for eid in model.rigid_elements if eid > M.LAGRAN_MAX_ID]
     thermal_log = []
     if "thermal" in which:
-        tmodel = M.read_model(Path(s.deck), out / "work")
-        thermal_log = M.make_thermal_uniform(tmodel, s.alpha)
+        tmodel = M.read_model(Path(s.deck), out / "work", xref=False)
+        thermal_log = M.split_rbe2_rotations_on_solid_grids(tmodel)
+        thermal_log = M.make_thermal_uniform(tmodel, s.alpha) + thermal_log
         (out / thermal_name).write_text(M.bulk_text(tmodel))
         for line in thermal_log:
             say("  thermal: " + line)
